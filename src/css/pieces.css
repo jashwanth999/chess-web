@@ -1,0 +1,6 @@
+.piece:hover {
+  cursor: grab;
+}
+.piece:active {
+  cursor: grabbing;
+}
