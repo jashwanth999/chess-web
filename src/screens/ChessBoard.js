@@ -1,13 +1,25 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+// import { pieces } from "../helpers/imageHelpers";
+import Box from "../components/Box";
+import { socket } from "../helpers/socketHelper";
+import { useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { pieces } from "../helpers/imageHelpers";
-import Box from "./Box";
+import { changePiecePositionAction } from "../api/action";
 
 const h = [1, 2, 3, 4, 5, 6, 7, 8];
 const v = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
 export default function ChessBoard() {
+  const { roomid } = useParams();
+
+  const pieces = useSelector((state) => state.pieces.pieces);
+
+  const dispatch = useDispatch();
   const [activePiece, setActivePiece] = useState(null);
   const [grabPosition, setGrabPosition] = useState([-1, -1]);
+
+  const [data, setData] = useState({});
 
   const chessboardRef = useRef(null);
   let board = [];
@@ -45,7 +57,7 @@ export default function ChessBoard() {
       const y = e.clientY - 40;
       activePiece.style.position = "absolute";
 
-      console.log(x, y);
+      // console.log(x, y);
 
       //If x is smaller than minimum amount
       if (x < minX) {
@@ -89,7 +101,7 @@ export default function ChessBoard() {
       const x = Math.floor((e.clientX - chessboard.offsetLeft) / 70);
       const y = Math.abs(Math.floor(e.clientY / 70));
 
-      console.log(x, y);
+      // console.log(x, y);
 
       let pos = y.toString() + ":" + x.toString();
 
@@ -114,6 +126,8 @@ export default function ChessBoard() {
         activePiece.style.removeProperty("left");
 
         pieces[pos] = img;
+
+        socket.emit("send_data", { roomid, pos, img, grabpos });
       }
       // console.log(pos, pieces[pos]);
       setActivePiece(null);
@@ -138,18 +152,38 @@ export default function ChessBoard() {
     }
   }
 
+  useEffect(() => {
+    socket.on("recieve_room_data", (data) => {
+      pieces[data.pos] = data.img;
+      pieces[data.grabpos] = "";
+      dispatch(changePiecePositionAction(pieces));
+      setData(data);
+    });
+  }, [dispatch, pieces, data]);
+
   return (
-    <div
-      onMouseMove={(e) => movePiece(e)}
-      onMouseDown={(e) => grabPiece(e)}
-      onMouseUp={(e) => dropPiece(e)}
-      ref={chessboardRef}
-      style={chessBoardDiv}
-    >
-      {board}
+    <div style={rootDiv}>
+      {/* <h3 style={{ margin: 4, textAlign: "left" }}> username:{username} </h3> */}
+      <div
+        onMouseMove={(e) => movePiece(e)}
+        onMouseDown={(e) => grabPiece(e)}
+        onMouseUp={(e) => dropPiece(e)}
+        ref={chessboardRef}
+        style={chessBoardDiv}
+      >
+        {board}
+      </div>
     </div>
   );
 }
+
+const rootDiv = {
+  display: "flex",
+  justifyContent: "center",
+  height: "100vh",
+  alignItems: "center",
+  flexDirection: "column",
+};
 
 const chessBoardDiv = {
   height: 560,

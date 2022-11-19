@@ -1,25 +1,17 @@
 import "./App.css";
-import ChessBoard from "./UI/ChessBoard";
+import ChessBoard from "./screens/ChessBoard";
+import Home from "./screens/Home";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
 
 function App() {
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        height: "100vh",
-        alignItems: "center",
-      }}
-    >
-      <ChessBoard />
-      <div
-        style={{
-          backgroundImage: `url(${require("./assets/wp.png")})`,
-
-          backgroundSize: "cover",
-        }}
-      ></div>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/room/:roomid" element={<ChessBoard />} />
+      </Routes>
+    </Router>
   );
 }
 
