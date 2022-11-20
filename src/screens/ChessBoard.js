@@ -40,7 +40,9 @@ export default function ChessBoard() {
 
     if (element.classList.contains("piece")) {
       const grabX = Math.floor((e.clientX - chessboard.offsetLeft) / 70);
-      const grabY = Math.abs(Math.floor(e.clientY / 70));
+      const grabY = Math.abs(
+        Math.floor((e.clientY - chessboard.offsetTop) / 70)
+      );
       // console.log(grabY, grabX);
       setGrabPosition([grabY, grabX]);
 
@@ -109,14 +111,13 @@ export default function ChessBoard() {
     const chessboard = chessboardRef.current;
     if (activePiece && chessboard) {
       const x = Math.floor((e.clientX - chessboard.offsetLeft) / 70);
-      const y = Math.abs(Math.floor(e.clientY / 70));
+      const y = Math.abs(Math.floor((e.clientY - chessboard.offsetTop) / 70));
 
       // console.log(x, y);
 
       let pos = y.toString() + ":" + x.toString();
 
-      let posOp =
-        (7 - grabPosition[0]).toString() + ":" + grabPosition[1].toString();
+      let posOp = (7 - y).toString() + ":" + (7 - x).toString();
 
       // console.log(grabPosition);
 
@@ -124,7 +125,9 @@ export default function ChessBoard() {
         grabPosition[0].toString() + ":" + grabPosition[1].toString();
 
       let grabposOp =
-        (7 - grabPosition[0]).toString() + ":" + grabPosition[1].toString();
+        (7 - grabPosition[0]).toString() +
+        ":" +
+        (7 - grabPosition[1]).toString();
 
       // console.log(grabpos);
 
@@ -139,7 +142,7 @@ export default function ChessBoard() {
 
         pieces[grabpos] = "";
 
-        piecesOpponent[grabposOp] = "";
+        // piecesOpponent[grabposOp] = "";
 
         activePiece.style.position = "relative";
         activePiece.style.removeProperty("top");
@@ -147,7 +150,9 @@ export default function ChessBoard() {
 
         pieces[pos] = img;
 
-        piecesOpponent[posOp] = imgOp;
+        // piecesOpponent[posOp] = imgOp;
+
+        console.log(grabposOp, posOp);
 
         socket.emit("send_data", {
           roomid,
@@ -188,9 +193,6 @@ export default function ChessBoard() {
 
   useEffect(() => {
     socket.on("recieve_room_data", (data) => {
-      pieces[data.pos] = data.img;
-      pieces[data.grabpos] = "";
-
       piecesOpponent[data.posOp] = data.imgOp;
 
       piecesOpponent[data.grabposOp] = "";
