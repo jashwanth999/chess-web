@@ -30,7 +30,9 @@ export default function ChessBoard() {
 
     if (element.classList.contains("piece")) {
       const grabX = Math.floor((e.clientX - chessboard.offsetLeft) / 70);
-      const grabY = Math.abs(Math.floor(e.clientY / 70));
+      const grabY = Math.abs(
+        Math.floor((e.clientY - chessboard.offsetTop) / 70)
+      );
       // console.log(grabY, grabX);
       setGrabPosition([grabY, grabX]);
 
@@ -99,7 +101,7 @@ export default function ChessBoard() {
     const chessboard = chessboardRef.current;
     if (activePiece && chessboard) {
       const x = Math.floor((e.clientX - chessboard.offsetLeft) / 70);
-      const y = Math.abs(Math.floor(e.clientY / 70));
+      const y = Math.abs(Math.floor((e.clientY - chessboard.offsetTop) / 70));
 
       // console.log(x, y);
 
