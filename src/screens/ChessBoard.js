@@ -215,7 +215,6 @@ export default function ChessBoard() {
     socket.on("recieve_room_data", (data) => {
       if (users[1].username === user.username) {
         piecesOpponent[data.posOp] = data.imgOp;
-
         piecesOpponent[data.grabposOp] = "";
       } else if (users[0].username === user.username) {
         pieces[data.posOp] = data.img;
