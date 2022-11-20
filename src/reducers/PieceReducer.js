@@ -11,13 +11,11 @@ export const pieceReducer = (state = initialState, action) => {
       return {
         ...state,
         pieces: action.payload,
-        piecesOpponent: action.payload,
       };
 
       case "CHANGE_OPPONENT_PIECE_POSITION":
         return {
           ...state,
-          pieces: action.payload,
           piecesOpponent: action.payload,
         };
     default:

@@ -43,8 +43,10 @@ export default function ChessBoard() {
       const grabY = Math.abs(
         Math.floor((e.clientY - chessboard.offsetTop) / 70)
       );
-      // console.log(grabY, grabX);
+      console.log(grabY, grabX);
       setGrabPosition([grabY, grabX]);
+
+      if (grabY === 0 || grabY === 1) return;
 
       const x = e.clientX - 70 / 2;
       const y = e.clientY - 70 / 2;
@@ -113,13 +115,13 @@ export default function ChessBoard() {
       const x = Math.floor((e.clientX - chessboard.offsetLeft) / 70);
       const y = Math.abs(Math.floor((e.clientY - chessboard.offsetTop) / 70));
 
-      // console.log(x, y);
+      console.log(x, y);
 
       let pos = y.toString() + ":" + x.toString();
 
-      let posOp = (7 - y).toString() + ":" + (7 - x).toString();
+      console.log(pos);
 
-      // console.log(grabPosition);
+      let posOp = (7 - y).toString() + ":" + (7 - x).toString();
 
       let grabpos =
         grabPosition[0].toString() + ":" + grabPosition[1].toString();
@@ -129,30 +131,47 @@ export default function ChessBoard() {
         ":" +
         (7 - grabPosition[1]).toString();
 
-      // console.log(grabpos);
+      console.log(users[1].username, user.username);
 
       if (pieces[pos]) {
         activePiece.style.position = "relative";
         activePiece.style.removeProperty("top");
         activePiece.style.removeProperty("left");
-      } else if (pieces[grabpos]) {
+      } else if (users[0].username === user.username && pieces[grabpos]) {
         let img = pieces[grabpos];
 
         let imgOp = piecesOpponent[grabposOp];
 
         pieces[grabpos] = "";
 
-        // piecesOpponent[grabposOp] = "";
-
+        pieces[pos] = img;
         activePiece.style.position = "relative";
         activePiece.style.removeProperty("top");
         activePiece.style.removeProperty("left");
 
-        pieces[pos] = img;
+        socket.emit("send_data", {
+          roomid,
+          pos,
+          img,
+          grabpos,
+          imgOp,
+          posOp,
+          grabposOp,
+        });
+      } else if (
+        users[1].username === user.username &&
+        piecesOpponent[grabpos]
+      ) {
+        let img = piecesOpponent[grabpos];
 
-        // piecesOpponent[posOp] = imgOp;
+        let imgOp = pieces[grabposOp];
 
-        console.log(grabposOp, posOp);
+        piecesOpponent[grabpos] = "";
+
+        piecesOpponent[pos] = img;
+        activePiece.style.position = "relative";
+        activePiece.style.removeProperty("top");
+        activePiece.style.removeProperty("left");
 
         socket.emit("send_data", {
           roomid,
@@ -164,6 +183,7 @@ export default function ChessBoard() {
           grabposOp,
         });
       }
+
       // console.log(pos, pieces[pos]);
       setActivePiece(null);
     }
@@ -193,17 +213,22 @@ export default function ChessBoard() {
 
   useEffect(() => {
     socket.on("recieve_room_data", (data) => {
-      piecesOpponent[data.posOp] = data.imgOp;
+      if (users[1].username === user.username) {
+        piecesOpponent[data.posOp] = data.imgOp;
 
-      piecesOpponent[data.grabposOp] = "";
+        piecesOpponent[data.grabposOp] = "";
+      } else if (users[0].username === user.username) {
+        pieces[data.posOp] = data.img;
+        pieces[data.grabposOp] = "";
+      }
 
       dispatch(changePiecePositionAction(pieces));
       dispatch(changeOpponentPiecePositionAction(piecesOpponent));
       setData(data);
     });
-  }, [dispatch, pieces, data]);
+  }, [dispatch, pieces, data, piecesOpponent]);
 
-  console.log(user);
+  // console.log(user);
 
   return (
     <div style={rootDiv}>
