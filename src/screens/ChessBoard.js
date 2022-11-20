@@ -4,8 +4,11 @@ import Box from "../components/Box";
 import { socket } from "../helpers/socketHelper";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { pieces } from "../helpers/imageHelpers";
-import { changePiecePositionAction } from "../api/action";
+import {
+  addUsers,
+  changeOpponentPiecePositionAction,
+  changePiecePositionAction,
+} from "../api/action";
 
 const h = [1, 2, 3, 4, 5, 6, 7, 8];
 const v = ["a", "b", "c", "d", "e", "f", "g", "h"];
@@ -14,6 +17,13 @@ export default function ChessBoard() {
   const { roomid } = useParams();
 
   const pieces = useSelector((state) => state.pieces.pieces);
+
+  const piecesOpponent = useSelector(
+    (state) => state.piecesOpponent.piecesOpponent
+  );
+  const users = useSelector((state) => state.users.users);
+
+  const user = useSelector((state) => state.user.user);
 
   const dispatch = useDispatch();
   const [activePiece, setActivePiece] = useState(null);
@@ -107,10 +117,17 @@ export default function ChessBoard() {
 
       let pos = y.toString() + ":" + x.toString();
 
+      let posOp = (7 - y).toString() + ":" + (7 - x).toString();
+
       // console.log(grabPosition);
 
       let grabpos =
         grabPosition[0].toString() + ":" + grabPosition[1].toString();
+
+      let grabposOp =
+        (7 - grabPosition[0]).toString() +
+        ":" +
+        (7 - grabPosition[1]).toString();
 
       // console.log(grabpos);
 
@@ -121,7 +138,11 @@ export default function ChessBoard() {
       } else if (pieces[grabpos]) {
         let img = pieces[grabpos];
 
+        let imgOp = piecesOpponent[grabposOp];
+
         pieces[grabpos] = "";
+
+        // piecesOpponent[grabposOp] = "";
 
         activePiece.style.position = "relative";
         activePiece.style.removeProperty("top");
@@ -129,7 +150,19 @@ export default function ChessBoard() {
 
         pieces[pos] = img;
 
-        socket.emit("send_data", { roomid, pos, img, grabpos });
+        // piecesOpponent[posOp] = imgOp;
+
+        console.log(grabposOp, posOp);
+
+        socket.emit("send_data", {
+          roomid,
+          pos,
+          img,
+          grabpos,
+          imgOp,
+          posOp,
+          grabposOp,
+        });
       }
       // console.log(pos, pieces[pos]);
       setActivePiece(null);
@@ -144,7 +177,11 @@ export default function ChessBoard() {
 
       board.push(
         <Box
-          image={pieces[cord]}
+          image={
+            users[0]?.username === user.username
+              ? pieces[cord]
+              : piecesOpponent[cord]
+          }
           number={number}
           row={i}
           col={j}
@@ -156,12 +193,17 @@ export default function ChessBoard() {
 
   useEffect(() => {
     socket.on("recieve_room_data", (data) => {
-      pieces[data.pos] = data.img;
-      pieces[data.grabpos] = "";
+      piecesOpponent[data.posOp] = data.imgOp;
+
+      piecesOpponent[data.grabposOp] = "";
+
       dispatch(changePiecePositionAction(pieces));
+      dispatch(changeOpponentPiecePositionAction(piecesOpponent));
       setData(data);
     });
   }, [dispatch, pieces, data]);
+
+  console.log(user);
 
   return (
     <div style={rootDiv}>
