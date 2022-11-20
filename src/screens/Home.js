@@ -1,16 +1,30 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { addUser, addUsers } from "../api/action";
 import { socket } from "../helpers/socketHelper";
 
 export default function Home() {
   const navigate = useNavigate();
+
+  const dispatch = useDispatch();
   const [username, setUsername] = useState("");
   const [roomId, setRoomId] = useState("");
 
-  const joinChessRoom = () => {
-    socket.emit("join_room", roomId);
+  const users = useSelector((state) => state.users.users);
 
-    navigate(`/room/${roomId}`);
+  const joinChessRoom = () => {
+    // if (users.length > 1) {
+    //   return alert("room full");
+    // }
+    socket.emit("join_room", {
+      username,
+      roomId,
+    });
+
+    dispatch(addUser({ username, roomId }));
+
+    navigate(`/waiting/${roomId}`);
   };
 
   return (
