@@ -9,6 +9,7 @@ import {
   changeOpponentPiecePositionAction,
   changePiecePositionAction,
 } from "../api/action";
+import ChatBox from "../components/ChatBox";
 
 const h = [1, 2, 3, 4, 5, 6, 7, 8];
 const v = ["a", "b", "c", "d", "e", "f", "g", "h"];
@@ -20,6 +21,14 @@ export default function ChessBoard() {
 
   const piecesOpponent = useSelector(
     (state) => state.piecesOpponent.piecesOpponent
+  );
+
+  const piecesConstants = useSelector(
+    (state) => state.piecesConstants.piecesConstants
+  );
+
+  const piecesOpponentConstants = useSelector(
+    (state) => state.piecesOpponentConstants.piecesOpponentConstants
   );
   const users = useSelector((state) => state.users.users);
 
@@ -43,10 +52,23 @@ export default function ChessBoard() {
       const grabY = Math.abs(
         Math.floor((e.clientY - chessboard.offsetTop) / 70)
       );
-      console.log(grabY, grabX);
+
       setGrabPosition([grabY, grabX]);
 
-      if (grabY === 0 || grabY === 1) return;
+      // let grabpos =
+      //   grabPosition[0].toString() + ":" + grabPosition[1].toString();
+
+      // if (
+      //   users[0].username === user.username &&
+      //   piecesConstants[grabpos] !== "b"
+      // ) {
+      //   return;
+      // } else if (
+      //   users[1].username === user.username &&
+      //   piecesOpponentConstants[grabpos] !== "w"
+      // ) {
+      //   return;
+      // }
 
       const x = e.clientX - 70 / 2;
       const y = e.clientY - 70 / 2;
@@ -131,8 +153,6 @@ export default function ChessBoard() {
         ":" +
         (7 - grabPosition[1]).toString();
 
-      console.log(users[1].username, user.username);
-
       if (pieces[pos]) {
         activePiece.style.position = "relative";
         activePiece.style.removeProperty("top");
@@ -140,11 +160,14 @@ export default function ChessBoard() {
       } else if (users[0].username === user.username && pieces[grabpos]) {
         let img = pieces[grabpos];
 
+        let color = piecesConstants[grabpos];
         let imgOp = piecesOpponent[grabposOp];
 
         pieces[grabpos] = "";
 
         pieces[pos] = img;
+
+        piecesConstants[pos] = color;
         activePiece.style.position = "relative";
         activePiece.style.removeProperty("top");
         activePiece.style.removeProperty("left");
@@ -162,11 +185,15 @@ export default function ChessBoard() {
         users[1].username === user.username &&
         piecesOpponent[grabpos]
       ) {
+        let color = piecesOpponentConstants[grabpos];
+
         let img = piecesOpponent[grabpos];
 
         let imgOp = pieces[grabposOp];
 
         piecesOpponent[grabpos] = "";
+
+        piecesOpponentConstants[grabpos] = color;
 
         piecesOpponent[pos] = img;
         activePiece.style.position = "relative";
@@ -214,7 +241,7 @@ export default function ChessBoard() {
   useEffect(() => {
     socket.on("recieve_room_data", (data) => {
       if (users[1].username === user.username) {
-        piecesOpponent[data.posOp] = data.imgOp;
+        piecesOpponent[data.posOp] = data.img;
         piecesOpponent[data.grabposOp] = "";
       } else if (users[0].username === user.username) {
         pieces[data.posOp] = data.img;
@@ -225,13 +252,10 @@ export default function ChessBoard() {
       dispatch(changeOpponentPiecePositionAction(piecesOpponent));
       setData(data);
     });
-  }, [dispatch, pieces, data, piecesOpponent]);
-
-  // console.log(user);
+  }, [dispatch, pieces, data, piecesOpponent, users, user]);
 
   return (
     <div style={rootDiv}>
-      {/* <h3 style={{ margin: 4, textAlign: "left" }}> username:{username} </h3> */}
       <div
         onMouseMove={(e) => movePiece(e)}
         onMouseDown={(e) => grabPiece(e)}
@@ -241,18 +265,20 @@ export default function ChessBoard() {
       >
         {board}
       </div>
+
+      <ChatBox roomId={roomid} username={user.username} socket={socket} />
     </div>
   );
 }
 
 const rootDiv = {
   display: "flex",
-  justifyContent: "center",
+  justifyContent: "space-around",
   height: "100vh",
   alignItems: "center",
-  flexDirection: "column",
+  flexDirection: "row",
+  backgroundColor: "#34495E",
 };
-
 const chessBoardDiv = {
   height: 560,
   width: 560,
