@@ -22,6 +22,8 @@ export default function Home() {
       roomId,
     });
 
+    if (users.length > 2) return alert("room is full");
+
     dispatch(addUser({ username, roomId }));
 
     navigate(`/waiting/${roomId}`);
