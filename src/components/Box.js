@@ -1,7 +1,7 @@
 import React from "react";
 import "../css/pieces.css";
 
-export default function Box({ number, image, row, col, chessBoard }) {
+export default function Box({ number, image }) {
  
   if (number % 2 === 0) {
     return (

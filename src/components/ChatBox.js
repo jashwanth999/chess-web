@@ -19,7 +19,7 @@ export default function ChatBox({ roomId, socket, username }) {
     });
   }, [socket, allMessages]);
 
-  console.log(allMessages);
+ 
 
   return (
     <div style={chatDiv}>

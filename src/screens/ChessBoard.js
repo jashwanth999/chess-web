@@ -4,12 +4,10 @@ import Box from "../components/Box";
 import { socket } from "../helpers/socketHelper";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  addUsers,
-  changeOpponentPiecePositionAction,
-  changePiecePositionAction,
-} from "../api/action";
+import { changePiecePositionAction } from "../api/action";
 import ChatBox from "../components/ChatBox";
+import { messageToSocket } from "../helpers/socketApiHelper";
+import { pieceValidMethodMap } from "../helpers/validMoveHelpers";
 
 const h = [1, 2, 3, 4, 5, 6, 7, 8];
 const v = ["a", "b", "c", "d", "e", "f", "g", "h"];
@@ -23,13 +21,6 @@ export default function ChessBoard() {
     (state) => state.piecesOpponent.piecesOpponent
   );
 
-  const piecesConstants = useSelector(
-    (state) => state.piecesConstants.piecesConstants
-  );
-
-  const piecesOpponentConstants = useSelector(
-    (state) => state.piecesOpponentConstants.piecesOpponentConstants
-  );
   const users = useSelector((state) => state.users.users);
 
   const user = useSelector((state) => state.user.user);
@@ -55,20 +46,23 @@ export default function ChessBoard() {
 
       setGrabPosition([grabY, grabX]);
 
-      // let grabpos =
-      //   grabPosition[0].toString() + ":" + grabPosition[1].toString();
+      let grabpos = grabY.toString() + ":" + grabX.toString();
 
-      // if (
-      //   users[0].username === user.username &&
-      //   piecesConstants[grabpos] !== "b"
-      // ) {
-      //   return;
-      // } else if (
-      //   users[1].username === user.username &&
-      //   piecesOpponentConstants[grabpos] !== "w"
-      // ) {
-      //   return;
-      // }
+      // console.log(grabpos)
+
+      // console.log(users,user.username)
+
+      if (
+        users[0].username === user.username &&
+        pieces[grabpos].color !== "b"
+      ) {
+        return;
+      } else if (
+        users[1].username === user.username &&
+        piecesOpponent[grabpos].color !== "w"
+      ) {
+        return;
+      }
 
       const x = e.clientX - 70 / 2;
       const y = e.clientY - 70 / 2;
@@ -132,87 +126,99 @@ export default function ChessBoard() {
   }
 
   function dropPiece(e) {
-    const chessboard = chessboardRef.current;
-    if (activePiece && chessboard) {
-      const x = Math.floor((e.clientX - chessboard.offsetLeft) / 70);
-      const y = Math.abs(Math.floor((e.clientY - chessboard.offsetTop) / 70));
+    try {
+      const chessboard = chessboardRef.current;
+      if (activePiece && chessboard) {
+        const x = Math.floor((e.clientX - chessboard.offsetLeft) / 70);
+        const y = Math.abs(Math.floor((e.clientY - chessboard.offsetTop) / 70));
 
-      console.log(x, y);
+        console.log(x, y);
 
-      let pos = y.toString() + ":" + x.toString();
+        let pos = y.toString() + ":" + x.toString();
 
-      console.log(pos);
+        console.log(pos);
 
-      let posOp = (7 - y).toString() + ":" + (7 - x).toString();
+        let posOp = (7 - y).toString() + ":" + (7 - x).toString();
 
-      let grabpos =
-        grabPosition[0].toString() + ":" + grabPosition[1].toString();
+        let grabpos =
+          grabPosition[0].toString() + ":" + grabPosition[1].toString();
 
-      let grabposOp =
-        (7 - grabPosition[0]).toString() +
-        ":" +
-        (7 - grabPosition[1]).toString();
+        let grabposOp =
+          (7 - grabPosition[0]).toString() +
+          ":" +
+          (7 - grabPosition[1]).toString();
 
-      if (pieces[pos]) {
-        activePiece.style.position = "relative";
-        activePiece.style.removeProperty("top");
-        activePiece.style.removeProperty("left");
-      } else if (users[0].username === user.username && pieces[grabpos]) {
-        let img = pieces[grabpos];
+        console.log(grabpos);
 
-        let color = piecesConstants[grabpos];
-        let imgOp = piecesOpponent[grabposOp];
+        if (
+          (users[0]?.username === user.username
+            ? pieces[pos]
+            : piecesOpponent[pos]) ||
+          !pieceValidMethodMap(
+            grabPosition[0],
+            grabPosition[1],
+            y,
+            x,
+            users[0]?.username === user.username
+              ? pieces[grabpos]?.pieceName
+              : piecesOpponent[grabpos]?.pieceName
+          )
+        ) {
+          activePiece.style.position = "relative";
+          activePiece.style.removeProperty("top");
+          activePiece.style.removeProperty("left");
+        } else if (users[0].username === user.username && pieces[grabpos]) {
+          let piecesData = pieces[grabpos];
 
-        pieces[grabpos] = "";
+          let piecesDataOp = piecesOpponent[grabposOp];
 
-        pieces[pos] = img;
+          pieces[grabpos] = "";
 
-        piecesConstants[pos] = color;
-        activePiece.style.position = "relative";
-        activePiece.style.removeProperty("top");
-        activePiece.style.removeProperty("left");
+          pieces[pos] = piecesData;
 
-        socket.emit("send_data", {
-          roomid,
-          pos,
-          img,
-          grabpos,
-          imgOp,
-          posOp,
-          grabposOp,
-        });
-      } else if (
-        users[1].username === user.username &&
-        piecesOpponent[grabpos]
-      ) {
-        let color = piecesOpponentConstants[grabpos];
+          activePiece.style.position = "relative";
+          activePiece.style.removeProperty("top");
+          activePiece.style.removeProperty("left");
 
-        let img = piecesOpponent[grabpos];
+          messageToSocket(
+            roomid,
+            pos,
+            piecesData,
+            grabpos,
+            piecesDataOp,
+            posOp,
+            grabposOp
+          );
+        } else if (
+          users[1].username === user.username &&
+          piecesOpponent[grabpos]
+        ) {
+          let piecesData = piecesOpponent[grabpos];
 
-        let imgOp = pieces[grabposOp];
+          let piecesDataOp = pieces[grabposOp];
 
-        piecesOpponent[grabpos] = "";
+          piecesOpponent[grabpos] = "";
 
-        piecesOpponentConstants[grabpos] = color;
+          piecesOpponent[pos] = piecesData;
+          activePiece.style.position = "relative";
+          activePiece.style.removeProperty("top");
+          activePiece.style.removeProperty("left");
 
-        piecesOpponent[pos] = img;
-        activePiece.style.position = "relative";
-        activePiece.style.removeProperty("top");
-        activePiece.style.removeProperty("left");
+          messageToSocket(
+            roomid,
+            pos,
+            piecesData,
+            grabpos,
+            piecesDataOp,
+            posOp,
+            grabposOp
+          );
+        }
 
-        socket.emit("send_data", {
-          roomid,
-          pos,
-          img,
-          grabpos,
-          imgOp,
-          posOp,
-          grabposOp,
-        });
+        setActivePiece(null);
       }
-
-      // console.log(pos, pieces[pos]);
-      setActivePiece(null);
+    } catch (e) {
+      console.log("error while drop piece : ", e.message);
     }
   }
 
@@ -226,13 +232,10 @@ export default function ChessBoard() {
         <Box
           image={
             users[0]?.username === user.username
-              ? pieces[cord]
-              : piecesOpponent[cord]
+              ? pieces[cord]?.image
+              : piecesOpponent[cord]?.image
           }
           number={number}
-          row={i}
-          col={j}
-          chessBoard={chessboardRef.current}
         />
       );
     }
@@ -241,15 +244,14 @@ export default function ChessBoard() {
   useEffect(() => {
     socket.on("recieve_room_data", (data) => {
       if (users[1].username === user.username) {
-        piecesOpponent[data.posOp] = data.img;
+        piecesOpponent[data.posOp] = data.piecesData;
+
         piecesOpponent[data.grabposOp] = "";
       } else if (users[0].username === user.username) {
-        pieces[data.posOp] = data.img;
+        pieces[data.posOp] = data.piecesData;
         pieces[data.grabposOp] = "";
       }
-
       dispatch(changePiecePositionAction(pieces));
-      dispatch(changeOpponentPiecePositionAction(piecesOpponent));
       setData(data);
     });
   }, [dispatch, pieces, data, piecesOpponent, users, user]);
@@ -266,7 +268,7 @@ export default function ChessBoard() {
         {board}
       </div>
 
-      <ChatBox roomId={roomid} username={user.username} socket={socket} />
+      {/* <ChatBox roomId={roomid} username={user.username} socket={socket} /> */}
     </div>
   );
 }
