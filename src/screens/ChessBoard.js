@@ -4,10 +4,18 @@ import Box from "../components/Box";
 import { socket } from "../helpers/socketHelper";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { changePiecePositionAction } from "../api/action";
+import {
+  changeKingPosition,
+  changeOpponentKingPosition,
+  changeOpponentPiecePositionAction,
+  changePiecePositionAction,
+} from "../api/action";
 import ChatBox from "../components/ChatBox";
 import { messageToSocket } from "../helpers/socketApiHelper";
-import { pieceValidMethodMap } from "../helpers/validMoveHelpers";
+import {
+  isValidMoveForCheckMate,
+  pieceValidMethodMap,
+} from "../helpers/validHelpers";
 
 const h = [1, 2, 3, 4, 5, 6, 7, 8];
 const v = ["a", "b", "c", "d", "e", "f", "g", "h"];
@@ -24,6 +32,10 @@ export default function ChessBoard() {
   const users = useSelector((state) => state.users.users);
 
   const user = useSelector((state) => state.user.user);
+
+  const kingPos = useSelector((state) => state.kingPos.kingPos);
+
+  const kingPosOp = useSelector((state) => state.kingPosOp.kingPosOp);
 
   const dispatch = useDispatch();
   const [activePiece, setActivePiece] = useState(null);
@@ -132,7 +144,7 @@ export default function ChessBoard() {
         const x = Math.floor((e.clientX - chessboard.offsetLeft) / 70);
         const y = Math.abs(Math.floor((e.clientY - chessboard.offsetTop) / 70));
 
-        console.log(x, y);
+        // console.log(x, y);
 
         let pos = y.toString() + ":" + x.toString();
 
@@ -148,12 +160,9 @@ export default function ChessBoard() {
           ":" +
           (7 - grabPosition[1]).toString();
 
-        console.log(grabpos);
+        // console.log(grabpos)
 
         if (
-          (users[0]?.username === user.username
-            ? pieces[pos]
-            : piecesOpponent[pos]) ||
           !pieceValidMethodMap(
             grabPosition[0],
             grabPosition[1],
@@ -161,7 +170,8 @@ export default function ChessBoard() {
             x,
             users[0]?.username === user.username
               ? pieces[grabpos]?.pieceName
-              : piecesOpponent[grabpos]?.pieceName
+              : piecesOpponent[grabpos]?.pieceName,
+            users[0]?.username === user.username ? pieces : piecesOpponent
           )
         ) {
           activePiece.style.position = "relative";
@@ -172,23 +182,69 @@ export default function ChessBoard() {
 
           let piecesDataOp = piecesOpponent[grabposOp];
 
-          pieces[grabpos] = "";
+          let piecesPosData = pieces[pos];
 
+          let piecesPosDataOp = piecesOpponent[posOp];
+
+          if (
+            pieces[pos] &&
+            (pieces[pos].color === pieces[grabpos].color ||
+              pieces[pos].pieceName === "k")
+          ) {
+            activePiece.style.position = "relative";
+            activePiece.style.removeProperty("top");
+            activePiece.style.removeProperty("left");
+
+            setActivePiece(null);
+
+            return;
+          }
+
+          let kingFlag = false;
+
+          if (pieces[grabpos].pieceName === "k") {
+            kingFlag = true;
+            dispatch(changeKingPosition(pos));
+          }
+
+          console.log("king", pieces[grabpos].pieceName, kingPos, kingFlag);
+
+          pieces[grabpos] = "";
           pieces[pos] = piecesData;
+
+          piecesOpponent[posOp] = piecesDataOp;
+          piecesOpponent[grabposOp] = "";
+
+          if (
+            isValidMoveForCheckMate(
+              parseInt(kingPos.split(":")[0]),
+              parseInt(kingPos.split(":")[1]),
+              pieces
+            ) &&
+            !kingFlag
+          ) {
+            pieces[grabpos] = piecesData;
+
+            pieces[pos] = piecesPosData;
+
+            piecesOpponent[grabposOp] = piecesDataOp;
+
+            piecesOpponent[posOp] = piecesPosDataOp;
+
+            activePiece.style.position = "relative";
+            activePiece.style.removeProperty("top");
+            activePiece.style.removeProperty("left");
+
+            setActivePiece(null);
+
+            return;
+          }
 
           activePiece.style.position = "relative";
           activePiece.style.removeProperty("top");
           activePiece.style.removeProperty("left");
 
-          messageToSocket(
-            roomid,
-            pos,
-            piecesData,
-            grabpos,
-            piecesDataOp,
-            posOp,
-            grabposOp
-          );
+          messageToSocket(roomid, pieces, piecesOpponent);
         } else if (
           users[1].username === user.username &&
           piecesOpponent[grabpos]
@@ -197,28 +253,75 @@ export default function ChessBoard() {
 
           let piecesDataOp = pieces[grabposOp];
 
-          piecesOpponent[grabpos] = "";
+          let piecesPosData = piecesOpponent[pos];
 
+          let piecesPosDataOp = pieces[posOp];
+
+          if (
+            piecesOpponent[pos] &&
+            (piecesOpponent[pos].color === piecesOpponent[grabpos].color ||
+              piecesOpponent[pos].pieceName === "k")
+          ) {
+            activePiece.style.position = "relative";
+            activePiece.style.removeProperty("top");
+            activePiece.style.removeProperty("left");
+
+            setActivePiece(null);
+
+            return;
+          }
+
+          let kingFlag = false;
+
+          if (piecesOpponent[grabpos].pieceName === "k") {
+            kingFlag = true;
+            dispatch(changeKingPosition(pos));
+          }
+
+          piecesOpponent[grabpos] = "";
           piecesOpponent[pos] = piecesData;
+
+          pieces[posOp] = piecesDataOp;
+          pieces[grabposOp] = "";
+
+          console.log("king", grabpos, piecesOpponent[grabpos]);
+
+          if (
+            isValidMoveForCheckMate(
+              Number(kingPos.split(":")[0]),
+              Number(kingPos.split(":")[1]),
+              piecesOpponent
+            ) &&
+            !kingFlag
+          ) {
+            piecesOpponent[grabpos] = piecesData;
+
+            piecesOpponent[pos] = piecesPosData;
+
+            pieces[grabposOp] = piecesDataOp;
+
+            pieces[posOp] = piecesPosDataOp;
+
+            activePiece.style.position = "relative";
+            activePiece.style.removeProperty("top");
+            activePiece.style.removeProperty("left");
+
+            setActivePiece(null);
+
+            return;
+          }
+
           activePiece.style.position = "relative";
           activePiece.style.removeProperty("top");
           activePiece.style.removeProperty("left");
 
-          messageToSocket(
-            roomid,
-            pos,
-            piecesData,
-            grabpos,
-            piecesDataOp,
-            posOp,
-            grabposOp
-          );
+          messageToSocket(roomid, pieces, piecesOpponent);
         }
 
         setActivePiece(null);
       }
     } catch (e) {
-      console.log("error while drop piece : ", e.message);
+      console.log("Error while drop piece : ", e.message);
     }
   }
 
@@ -243,18 +346,13 @@ export default function ChessBoard() {
 
   useEffect(() => {
     socket.on("recieve_room_data", (data) => {
-      if (users[1].username === user.username) {
-        piecesOpponent[data.posOp] = data.piecesData;
-
-        piecesOpponent[data.grabposOp] = "";
-      } else if (users[0].username === user.username) {
-        pieces[data.posOp] = data.piecesData;
-        pieces[data.grabposOp] = "";
-      }
-      dispatch(changePiecePositionAction(pieces));
+      dispatch(changePiecePositionAction(data.pieces));
+      dispatch(changeOpponentPiecePositionAction(data.piecesOpponent));
       setData(data);
     });
   }, [dispatch, pieces, data, piecesOpponent, users, user]);
+
+  // console.log(kingPos);
 
   return (
     <div style={rootDiv}>
@@ -268,7 +366,17 @@ export default function ChessBoard() {
         {board}
       </div>
 
-      {/* <ChatBox roomId={roomid} username={user.username} socket={socket} /> */}
+      {/* <div style={rightDiv}>
+        <h3 style={{ color: "white", margin: 0 }}>
+          {" "}
+          {user.username === users[0].username
+            ? users[1].username
+            : users[0].username}
+        </h3>
+
+        <ChatBox roomId={roomid} username={user.username} socket={socket} />
+        <h3 style={{ color: "white", margin: 0 }}> {user.username}</h3>
+      </div> */}
     </div>
   );
 }
@@ -289,4 +397,13 @@ const chessBoardDiv = {
   flexWrap: "wrap",
   gridTemplateColumns: "repeat(8,70px)",
   gridTemplateRows: "repeat(8,70px)",
+};
+
+const rightDiv = {
+  display: "flex",
+  flex: 0.7,
+  margin: 10,
+  flexDirection: "column",
+  height: "100vh",
+  justifyContent: "space-around",
 };

@@ -1,21 +1,9 @@
 import { socket } from "./socketHelper";
 
-export const messageToSocket = (
-  roomid,
-  pos,
-  piecesData,
-  grabpos,
-  piecesDataOp,
-  posOp,
-  grabposOp
-) => {
+export const messageToSocket = (roomid, pieces, piecesOpponent) => {
   socket.emit("send_data", {
     roomid,
-    pos,
-    piecesData,
-    grabpos,
-    piecesDataOp,
-    posOp,
-    grabposOp,
+    pieces,
+    piecesOpponent,
   });
 };

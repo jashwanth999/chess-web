@@ -61,7 +61,7 @@ const messagesDiv = {
 };
 
 const chatDiv = {
-  flex: 0.5,
+  flex: 0.8,
   height: "90vh",
   borderRadius: 5,
   display: "flex",

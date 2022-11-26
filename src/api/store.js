@@ -1,13 +1,14 @@
 import { createStore, combineReducers } from "redux";
 import { pieceReducer } from "../reducers/PieceReducer";
 import { addUserReducer } from "../reducers/AddUserReducer";
+import { kingPositionReducer } from "../reducers/kingPositionReducer";
 
 const combined = combineReducers({
-  pieces: pieceReducer,
   users: addUserReducer,
   user: addUserReducer,
+  pieces: pieceReducer,
   piecesOpponent: pieceReducer,
-  piecesConstants:pieceReducer,
-  piecesOpponentConstants:pieceReducer
+  kingPos: kingPositionReducer,
+  kingPosOp: kingPositionReducer,
 });
 export const store = createStore(combined);
