@@ -25,3 +25,17 @@ export const changeOpponentPiecePositionAction = (data) => {
     payload: data,
   };
 };
+
+export const changeKingPosition = (data) => {
+  return {
+    type: "CHANGE_KING_POSITION",
+    payload: data,
+  };
+};
+
+export const changeOpponentKingPosition = (data) => {
+  return {
+    type: "CHANGE_OPPONENT_KING_POSITION",
+    payload: data,
+  };
+};
