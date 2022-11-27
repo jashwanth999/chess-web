@@ -16,6 +16,7 @@ import {
   isValidMoveForCheckMate,
   pieceValidMethodMap,
 } from "../helpers/validHelpers";
+import { opponentCalledForCheckMate } from "../helpers/checkMateAttackHelpers";
 
 const h = [1, 2, 3, 4, 5, 6, 7, 8];
 const v = ["a", "b", "c", "d", "e", "f", "g", "h"];
@@ -47,42 +48,48 @@ export default function ChessBoard() {
   let board = [];
 
   function grabPiece(e) {
-    let element = e.target;
-    const chessboard = chessboardRef.current;
+    try {
+      let element = e.target;
+      const chessboard = chessboardRef.current;
 
-    if (element.classList.contains("piece")) {
-      const grabX = Math.floor((e.clientX - chessboard.offsetLeft) / 70);
-      const grabY = Math.abs(
-        Math.floor((e.clientY - chessboard.offsetTop) / 70)
-      );
+      // console.log(isCheckMate(pieces))
 
-      setGrabPosition([grabY, grabX]);
+      if (element.classList.contains("piece")) {
+        const grabX = Math.floor((e.clientX - chessboard.offsetLeft) / 70);
+        const grabY = Math.abs(
+          Math.floor((e.clientY - chessboard.offsetTop) / 70)
+        );
 
-      let grabpos = grabY.toString() + ":" + grabX.toString();
+        setGrabPosition([grabY, grabX]);
 
-      // console.log(grabpos)
+        let grabpos = grabY.toString() + ":" + grabX.toString();
 
-      // console.log(users,user.username)
+        // console.log(grabpos)
 
-      if (
-        users[0].username === user.username &&
-        pieces[grabpos].color !== "b"
-      ) {
-        return;
-      } else if (
-        users[1].username === user.username &&
-        piecesOpponent[grabpos].color !== "w"
-      ) {
-        return;
+        // console.log(users,user.username)
+
+        if (
+          users[0].username === user.username &&
+          pieces[grabpos]?.color !== "b"
+        ) {
+          return;
+        } else if (
+          users[1].username === user.username &&
+          piecesOpponent[grabpos]?.color !== "w"
+        ) {
+          return;
+        }
+
+        const x = e.clientX - 70 / 2;
+        const y = e.clientY - 70 / 2;
+        element.style.position = "absolute";
+        element.style.left = `${x}px`;
+        element.style.top = `${y}px`;
+
+        setActivePiece(element);
       }
-
-      const x = e.clientX - 70 / 2;
-      const y = e.clientY - 70 / 2;
-      element.style.position = "absolute";
-      element.style.left = `${x}px`;
-      element.style.top = `${y}px`;
-
-      setActivePiece(element);
+    } catch (e) {
+      console.log("Error while grabbing piece", e.message);
     }
   }
 
@@ -150,15 +157,13 @@ export default function ChessBoard() {
 
         console.log(pos);
 
-        let posOp = (7 - y).toString() + ":" + (7 - x).toString();
+        let posOp = (7 - y).toString() + ":" + x.toString();
 
         let grabpos =
           grabPosition[0].toString() + ":" + grabPosition[1].toString();
 
         let grabposOp =
-          (7 - grabPosition[0]).toString() +
-          ":" +
-          (7 - grabPosition[1]).toString();
+          (7 - grabPosition[0]).toString() + ":" + grabPosition[1].toString();
 
         // console.log(grabpos)
 
@@ -207,8 +212,6 @@ export default function ChessBoard() {
             dispatch(changeKingPosition(pos));
           }
 
-          console.log("king", pieces[grabpos].pieceName, kingPos, kingFlag);
-
           pieces[grabpos] = "";
           pieces[pos] = piecesData;
 
@@ -216,12 +219,34 @@ export default function ChessBoard() {
           piecesOpponent[grabposOp] = "";
 
           if (
-            isValidMoveForCheckMate(
-              parseInt(kingPos.split(":")[0]),
-              parseInt(kingPos.split(":")[1]),
+            opponentCalledForCheckMate(
+              7 - Number(kingPosOp.split(":")[0]),
+              Number(kingPosOp.split(":")[1]),
+              y,
+              x,
+              pieces[pos].pieceName,
               pieces
-            ) &&
-            !kingFlag
+            )
+          ) {
+            /*
+              1. Get checkMateCount from  isValidMoveForCheckMate
+              2. If checkMateCount > 1  only king should move  
+                 2.1 -> check all + 1 move for king 
+                 2.2 -> if + 1 move is diff color check whether opponent color is secured with checkmate
+              3. If checkMateCount == 1 now we need to check king move and same color piece can secure king or not
+             */
+          }
+
+          if (
+            isValidMoveForCheckMate(
+              kingFlag
+                ? Number(pos.split(":")[0])
+                : Number(kingPos.split(":")[0]),
+              kingFlag
+                ? Number(pos.split(":")[1])
+                : Number(kingPos.split(":")[1]),
+              pieces
+            )
           ) {
             pieces[grabpos] = piecesData;
 
@@ -230,6 +255,10 @@ export default function ChessBoard() {
             piecesOpponent[grabposOp] = piecesDataOp;
 
             piecesOpponent[posOp] = piecesPosDataOp;
+
+            if (kingFlag) {
+              dispatch(changeKingPosition(grabpos));
+            }
 
             activePiece.style.position = "relative";
             activePiece.style.removeProperty("top");
@@ -275,7 +304,7 @@ export default function ChessBoard() {
 
           if (piecesOpponent[grabpos].pieceName === "k") {
             kingFlag = true;
-            dispatch(changeKingPosition(pos));
+            dispatch(changeOpponentKingPosition(pos));
           }
 
           piecesOpponent[grabpos] = "";
@@ -284,15 +313,16 @@ export default function ChessBoard() {
           pieces[posOp] = piecesDataOp;
           pieces[grabposOp] = "";
 
-          console.log("king", grabpos, piecesOpponent[grabpos]);
-
           if (
             isValidMoveForCheckMate(
-              Number(kingPos.split(":")[0]),
-              Number(kingPos.split(":")[1]),
+              kingFlag
+                ? Number(pos.split(":")[0])
+                : Number(kingPosOp.split(":")[0]),
+              kingFlag
+                ? Number(pos.split(":")[1])
+                : Number(kingPosOp.split(":")[1]),
               piecesOpponent
-            ) &&
-            !kingFlag
+            )
           ) {
             piecesOpponent[grabpos] = piecesData;
 
@@ -301,6 +331,10 @@ export default function ChessBoard() {
             pieces[grabposOp] = piecesDataOp;
 
             pieces[posOp] = piecesPosDataOp;
+
+            if (kingFlag) {
+              dispatch(changeOpponentKingPosition(grabpos));
+            }
 
             activePiece.style.position = "relative";
             activePiece.style.removeProperty("top");
@@ -352,7 +386,7 @@ export default function ChessBoard() {
     });
   }, [dispatch, pieces, data, piecesOpponent, users, user]);
 
-  // console.log(kingPos);
+  // console.log(kingPosOp);
 
   return (
     <div style={rootDiv}>
@@ -366,7 +400,7 @@ export default function ChessBoard() {
         {board}
       </div>
 
-      {/* <div style={rightDiv}>
+      <div style={rightDiv}>
         <h3 style={{ color: "white", margin: 0 }}>
           {" "}
           {user.username === users[0].username
@@ -376,7 +410,7 @@ export default function ChessBoard() {
 
         <ChatBox roomId={roomid} username={user.username} socket={socket} />
         <h3 style={{ color: "white", margin: 0 }}> {user.username}</h3>
-      </div> */}
+      </div>
     </div>
   );
 }
