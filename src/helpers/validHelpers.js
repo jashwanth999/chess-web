@@ -24,7 +24,6 @@ export const pieceValidMethodMap = (prevX, prevY, x, y, pieceName, pieces) => {
   }
 
   if (pieceName === "k") {
-    console.log(validMove.isKing());
     return validMove.isKing();
   }
 };
@@ -35,7 +34,6 @@ class ValidMove {
     this.prevY = prevY;
     this.x = x;
     this.y = y;
-    this.check = false;
     this.pieces = pieces;
   }
 
@@ -215,17 +213,14 @@ class ValidMove {
   }
 }
 
-export const isValidMoveForCheckMate = (
- 
-  kingPosX,
-  kingPosY,
-  pieces
-) => {
+export const isValidMoveForCheckMate = (kingPosX, kingPosY, pieces) => {
   let grabPos = kingPosX.toString() + ":" + kingPosY.toString();
 
   console.log("checkmate->" + grabPos);
 
   // up
+
+  let checkMateCount = 0;
 
   try {
     for (let i = kingPosX - 1; i >= 0; i--) {
@@ -239,7 +234,8 @@ export const isValidMoveForCheckMate = (
         if (pieces[pos].pieceName === "r" || pieces[pos].pieceName === "q") {
           console.log("up");
 
-          return true;
+          checkMateCount++;
+          break;
         } else break;
       }
     }
@@ -256,14 +252,15 @@ export const isValidMoveForCheckMate = (
       if (pieces[pos] && pieces[pos].color !== pieces[grabPos].color) {
         if (pieces[pos].pieceName === "r" || pieces[pos].pieceName === "q") {
           console.log("down");
-          return true;
+          checkMateCount++;
+          break;
         } else break;
       }
     }
 
     // left
 
-    for (let i = kingPosX - 1; i >= 0; i++) {
+    for (let i = kingPosY - 1; i >= 0; i--) {
       let pos = kingPosX.toString() + ":" + i.toString();
 
       if (pieces[pos] && pieces[pos].color === pieces[grabPos].color) {
@@ -273,14 +270,15 @@ export const isValidMoveForCheckMate = (
       if (pieces[pos] && pieces[pos].color !== pieces[grabPos].color) {
         if (pieces[pos].pieceName === "r" || pieces[pos].pieceName === "q") {
           console.log("left");
-          return true;
+          checkMateCount++;
+          break;
         } else break;
       }
     }
 
     // right
 
-    for (let i = kingPosX + 1; i < 8; i++) {
+    for (let i = kingPosY + 1; i < 8; i++) {
       let pos = kingPosX.toString() + ":" + i.toString();
 
       if (pieces[pos] && pieces[pos].color === pieces[grabPos].color) {
@@ -290,7 +288,8 @@ export const isValidMoveForCheckMate = (
       if (pieces[pos] && pieces[pos].color !== pieces[grabPos].color) {
         if (pieces[pos].pieceName === "r" || pieces[pos].pieceName === "q") {
           console.log("right");
-          return true;
+          checkMateCount++;
+          break;
         } else break;
       }
     }
@@ -307,7 +306,8 @@ export const isValidMoveForCheckMate = (
       if (pieces[pos] && pieces[pos].color !== pieces[grabPos].color) {
         if (pieces[pos].pieceName === "b" || pieces[pos].pieceName === "q") {
           console.log("leftup");
-          return true;
+          checkMateCount++;
+          break;
         } else break;
       }
     }
@@ -324,7 +324,8 @@ export const isValidMoveForCheckMate = (
       if (pieces[pos] && pieces[pos].color !== pieces[grabPos].color) {
         if (pieces[pos].pieceName === "b" || pieces[pos].pieceName === "q") {
           console.log("leftdown");
-          return true;
+          checkMateCount++;
+          break;
         } else break;
       }
     }
@@ -341,7 +342,8 @@ export const isValidMoveForCheckMate = (
       if (pieces[pos] && pieces[pos].color !== pieces[grabPos].color) {
         if (pieces[pos].pieceName === "b" || pieces[pos].pieceName === "q") {
           console.log("rightup");
-          return true;
+          checkMateCount++;
+          break;
         } else break;
       }
     }
@@ -358,7 +360,8 @@ export const isValidMoveForCheckMate = (
       if (pieces[pos] && pieces[pos].color !== pieces[grabPos].color) {
         if (pieces[pos].pieceName === "b" || pieces[pos].pieceName === "q") {
           console.log("rightdown");
-          return true;
+          checkMateCount++;
+          break;
         } else break;
       }
     }
@@ -366,5 +369,16 @@ export const isValidMoveForCheckMate = (
     console.log("Error while validating move for checkmate", e.message);
   }
 
-  return false;
+  console.log(checkMateCount)
+
+  return checkMateCount;
+};
+
+export const isCheckMate = (pieces) => {
+  // let piecesTemp=pieces
+  //  for(let pos in piecesTemp){
+  //      if(piecesTemp[pos]){
+  //          let piecesData = piecesTemp[pos]
+  //      }
+  //  }
 };

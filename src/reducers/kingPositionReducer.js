@@ -1,6 +1,6 @@
 const initialState = {
   kingPos: "7:4",
-  kingPosOp: "0:3",
+  kingPosOp: "7:4",
 };
 export const kingPositionReducer = (state = initialState, action) => {
   switch (action.type) {

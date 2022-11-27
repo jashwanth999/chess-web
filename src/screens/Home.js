@@ -14,9 +14,6 @@ export default function Home() {
   const users = useSelector((state) => state.users.users);
 
   const joinChessRoom = () => {
-    // if (users.length > 1) {
-    //   return alert("room full");
-    // }
     socket.emit("join_room", {
       username,
       roomId,
