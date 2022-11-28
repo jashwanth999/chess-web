@@ -16,7 +16,11 @@ import {
   isValidMoveForCheckMate,
   pieceValidMethodMap,
 } from "../helpers/validHelpers";
-import { opponentCalledForCheckMate } from "../helpers/checkMateAttackHelpers";
+import { callingOpponentForCheckMate } from "../helpers/checkMateAttackHelpers";
+import {
+  checkMateStopFromOTherPiece,
+  kingAbleToMoveAfterCheckMate,
+} from "../helpers/finalCheckMateAttackHelpers";
 
 const h = [1, 2, 3, 4, 5, 6, 7, 8];
 const v = ["a", "b", "c", "d", "e", "f", "g", "h"];
@@ -155,7 +159,7 @@ export default function ChessBoard() {
 
         let pos = y.toString() + ":" + x.toString();
 
-        console.log(pos);
+        // console.log(pos);
 
         let posOp = (7 - y).toString() + ":" + x.toString();
 
@@ -219,25 +223,6 @@ export default function ChessBoard() {
           piecesOpponent[grabposOp] = "";
 
           if (
-            opponentCalledForCheckMate(
-              7 - Number(kingPosOp.split(":")[0]),
-              Number(kingPosOp.split(":")[1]),
-              y,
-              x,
-              pieces[pos].pieceName,
-              pieces
-            )
-          ) {
-            /*
-              1. Get checkMateCount from  isValidMoveForCheckMate
-              2. If checkMateCount > 1  only king should move  
-                 2.1 -> check all + 1 move for king 
-                 2.2 -> if + 1 move is diff color check whether opponent color is secured with checkmate
-              3. If checkMateCount == 1 now we need to check king move and same color piece can secure king or not
-             */
-          }
-
-          if (
             isValidMoveForCheckMate(
               kingFlag
                 ? Number(pos.split(":")[0])
@@ -267,6 +252,56 @@ export default function ChessBoard() {
             setActivePiece(null);
 
             return;
+          }
+
+          //after success checking our move for checkmate
+
+          if (
+            callingOpponentForCheckMate(
+              7 - Number(kingPosOp.split(":")[0]),
+              Number(kingPosOp.split(":")[1]),
+              y,
+              x,
+              pieces[pos].pieceName,
+              pieces
+            )
+          ) {
+            console.log("check called by opponent");
+
+            // check whether king can do valid move or not
+            // need to check whether we can stop making checkmate with other piece
+
+            console.log(
+              checkMateStopFromOTherPiece(
+                pieces,
+                7 - Number(kingPosOp.split(":")[0]),
+                Number(kingPosOp.split(":")[1]),
+                y,
+                x
+              ),
+              kingAbleToMoveAfterCheckMate(
+                7 - Number(kingPosOp.split(":")[0]),
+                Number(kingPosOp.split(":")[1]),
+                pieces
+              )
+            );
+
+            if (
+              !checkMateStopFromOTherPiece(
+                pieces,
+                7 - Number(kingPosOp.split(":")[0]),
+                Number(kingPosOp.split(":")[1]),
+                y,
+                x
+              ) &&
+              !kingAbleToMoveAfterCheckMate(
+                7 - Number(kingPosOp.split(":")[0]),
+                Number(kingPosOp.split(":")[1]),
+                pieces
+              )
+            ) {
+              console.log("checkMate");
+            }
           }
 
           activePiece.style.position = "relative";
@@ -400,7 +435,7 @@ export default function ChessBoard() {
         {board}
       </div>
 
-      <div style={rightDiv}>
+      {/* <div style={rightDiv}>
         <h3 style={{ color: "white", margin: 0 }}>
           {" "}
           {user.username === users[0].username
@@ -410,7 +445,7 @@ export default function ChessBoard() {
 
         <ChatBox roomId={roomid} username={user.username} socket={socket} />
         <h3 style={{ color: "white", margin: 0 }}> {user.username}</h3>
-      </div>
+      </div> */}
     </div>
   );
 }

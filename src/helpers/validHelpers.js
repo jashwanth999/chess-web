@@ -1,7 +1,7 @@
 export const pieceValidMethodMap = (prevX, prevY, x, y, pieceName, pieces) => {
   let validMove = new ValidMove(prevX, prevY, x, y, pieces);
 
-  // console.log(prevX, x, prevY, y, pieceName, pieces);
+  // console.log(prevX, x, prevY, y, pieceName);
 
   if (pieceName === "p") {
     return validMove.isPawn();
@@ -216,7 +216,7 @@ class ValidMove {
 export const isValidMoveForCheckMate = (kingPosX, kingPosY, pieces) => {
   let grabPos = kingPosX.toString() + ":" + kingPosY.toString();
 
-  console.log("checkmate->" + grabPos);
+  // console.log("checkmate->" + grabPos);
 
   // up
 
@@ -369,16 +369,7 @@ export const isValidMoveForCheckMate = (kingPosX, kingPosY, pieces) => {
     console.log("Error while validating move for checkmate", e.message);
   }
 
-  console.log(checkMateCount)
+  // console.log(checkMateCount)
 
   return checkMateCount;
-};
-
-export const isCheckMate = (pieces) => {
-  // let piecesTemp=pieces
-  //  for(let pos in piecesTemp){
-  //      if(piecesTemp[pos]){
-  //          let piecesData = piecesTemp[pos]
-  //      }
-  //  }
 };
