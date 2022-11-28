@@ -1,4 +1,4 @@
-export const opponentCalledForCheckMate = (
+export const callingOpponentForCheckMate = (
   kingPosX,
   kingPosY,
   x,
@@ -8,7 +8,7 @@ export const opponentCalledForCheckMate = (
 ) => {
   let checkMateAttack = new CheckMateAttack(kingPosX, kingPosY, x, y, pieces);
 
-  console.log(kingPosX, x, kingPosY, y, pieceName);
+  // console.log(kingPosX, kingPosY, x, y, pieceName);
 
   if (pieceName === "p") {
     return checkMateAttack.isPawn();
@@ -81,8 +81,12 @@ class CheckMateAttack {
       if (this.pieces[pos] && this.pieces[pos].color === currentPieceColor)
         break;
 
-      if (this.pieces[pos] && this.pieces[pos].color !== currentPieceColor)
-        return true;
+      if (this.pieces[pos] && this.pieces[pos].color !== currentPieceColor) {
+        if (this.x === this.kingPosX && i === this.kingPosY) {
+          console.log("right");
+          return true;
+        } else break;
+      }
     }
 
     //left
@@ -92,8 +96,12 @@ class CheckMateAttack {
       if (this.pieces[pos] && this.pieces[pos].color === currentPieceColor)
         break;
 
-      if (this.pieces[pos] && this.pieces[pos].color !== currentPieceColor)
-        return true;
+      if (this.pieces[pos] && this.pieces[pos].color !== currentPieceColor) {
+        if (this.x === this.kingPosX && i === this.kingPosY) {
+          console.log("left");
+          return true;
+        } else break;
+      }
     }
 
     //up
@@ -103,8 +111,12 @@ class CheckMateAttack {
       if (this.pieces[pos] && this.pieces[pos].color === currentPieceColor)
         break;
 
-      if (this.pieces[pos] && this.pieces[pos].color !== currentPieceColor)
-        return true;
+      if (this.pieces[pos] && this.pieces[pos].color !== currentPieceColor) {
+        if (i === this.kingPosX && this.y === this.kingPosY) {
+          console.log("up");
+          return true;
+        } else break;
+      }
     }
 
     //down
@@ -114,8 +126,12 @@ class CheckMateAttack {
       if (this.pieces[pos] && this.pieces[pos].color === currentPieceColor)
         break;
 
-      if (this.pieces[pos] && this.pieces[pos].color !== currentPieceColor)
-        return true;
+      if (this.pieces[pos] && this.pieces[pos].color !== currentPieceColor) {
+        if (i === this.kingPosX && this.y === this.kingPosY) {
+          console.log("down");
+          return true;
+        } else break;
+      }
     }
     return false;
   }
@@ -142,8 +158,14 @@ class CheckMateAttack {
         break;
       }
 
-      if (this.pieces[pos] && this.pieces[pos].color !== currentPieceColor)
-        return true;
+      console.log(this.pieces[pos]?.color, currentPieceColor, i, j);
+
+      if (this.pieces[pos] && this.pieces[pos].color !== currentPieceColor) {
+        if (i === this.kingPosX && j === this.kingPosY) {
+          console.log("leftup");
+          return true;
+        } else break;
+      }
     }
 
     //leftDown
@@ -158,8 +180,12 @@ class CheckMateAttack {
       if (this.pieces[pos] && this.pieces[pos].color === currentPieceColor)
         break;
 
-      if (this.pieces[pos] && this.pieces[pos].color !== currentPieceColor)
-        return true;
+      if (this.pieces[pos] && this.pieces[pos].color !== currentPieceColor) {
+        if (i === this.kingPosX && j === this.kingPosY) {
+          console.log("leftdown");
+          return true;
+        } else break;
+      }
     }
 
     //rightUp
@@ -174,8 +200,12 @@ class CheckMateAttack {
       if (this.pieces[pos] && this.pieces[pos].color === currentPieceColor)
         break;
 
-      if (this.pieces[pos] && this.pieces[pos].color !== currentPieceColor)
-        return true;
+      if (this.pieces[pos] && this.pieces[pos].color !== currentPieceColor) {
+        if (i === this.kingPosX && j === this.kingPosY) {
+          console.log("rightup");
+          return true;
+        } else break;
+      }
     }
 
     //rightDown
@@ -190,8 +220,17 @@ class CheckMateAttack {
       if (this.pieces[pos] && this.pieces[pos].color === currentPieceColor)
         break;
 
-      if (this.pieces[pos] && this.pieces[pos].color !== currentPieceColor)
-        return true;
+      if (
+        this.pieces[pos] &&
+        this.pieces[pos].color !== currentPieceColor &&
+        i === this.kingPosX &&
+        j === this.kingPosY
+      ) {
+        if (i === this.kingPosX && j === this.kingPosY) {
+          console.log("rightdown");
+          return true;
+        } else break;
+      }
     }
     return false;
   }
