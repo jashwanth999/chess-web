@@ -21,8 +21,6 @@ export default function WaitingScreen() {
     socket.on("recieve_users_to_room", (data) => {
       setData(data);
 
-      
-
       if (data.length > 1) {
         data[0] = { username: data[0].username, color: "b" };
         data[1] = { username: data[1].username, color: "w" };
@@ -33,5 +31,17 @@ export default function WaitingScreen() {
     });
   }, [data, roomid, dispatch]);
 
-  return <div>Waiting for opponent...</div>;
+  return (
+    <div style={rootDiv}>
+      <h3 style={{ color: "white" }}> Searching for opponent...</h3>
+    </div>
+  );
 }
+
+const rootDiv = {
+  display: "flex",
+  justifyContent: "center",
+  height: "100vh",
+  alignItems: "center",
+  backgroundColor: "rgb(46, 46, 46)",
+};

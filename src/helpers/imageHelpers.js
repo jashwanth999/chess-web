@@ -73,3 +73,24 @@ export const piecesOpponent = {
   "6:6": { image: require("../assets/wp.png"), color: "w", pieceName: "p" },
   "6:7": { image: require("../assets/wp.png"), color: "w", pieceName: "p" },
 };
+
+export const gridConstants = {
+  gridSize: 430,
+};
+
+export const h = [1, 2, 3, 4, 5, 6, 7, 8];
+export const v = ["a", "b", "c", "d", "e", "f", "g", "h"];
+
+export const pawnReachedOtherSidePieces = [
+  { image: require("../assets/br.png"), color: "b", pieceName: "r" },
+  { image: require("../assets/bn.png"), color: "b", pieceName: "n" },
+  { image: require("../assets/bb.png"), color: "b", pieceName: "b" },
+  { image: require("../assets/bq.png"), color: "b", pieceName: "q" },
+];
+
+export const opponentPawnReachedOtherSidePieces = [
+  { image: require("../assets/wr.png"), color: "w", pieceName: "r" },
+  { image: require("../assets/wn.png"), color: "w", pieceName: "n" },
+  { image: require("../assets/wb.png"), color: "w", pieceName: "b" },
+  { image: require("../assets/wq.png"), color: "w", pieceName: "q" },
+];

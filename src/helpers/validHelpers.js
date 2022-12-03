@@ -38,23 +38,35 @@ class ValidMove {
   }
 
   isPawn() {
-    if (this.prevX - 1 !== this.x || Math.abs(this.prevY - this.y) > 1)
-      return false;
+    if (Math.abs(this.prevY - this.y) > 1) return false;
 
-    let prevPos = this.prevX.toString() + ":" + this.prevY.toString();
-
-    let pos = this.x.toString() + ":" + this.y.toString();
+    // checking if pawn is in starting position pawn can jump 2 steps or else only 1 step
 
     if (
-      this.pieces[pos] !== undefined &&
-      this.pieces[pos].color !== this.pieces[prevPos].color
+      (this.prevX === 6 && this.prevX - this.x === 2) ||
+      this.prevX - this.x === 1
     ) {
-      return true;
+      let prevPos = this.prevX.toString() + ":" + this.prevY.toString();
+
+      let pos = this.x.toString() + ":" + this.y.toString();
+
+      //below condition helps to attack valid pawn attack
+
+      if (
+        this.pieces[pos] &&
+        this.pieces[pos].color !== this.pieces[prevPos].color &&
+        Math.abs(this.prevX - this.x) == 1 &&
+        Math.abs(this.prevY - this.y) == 1
+      ) {
+        return true;
+      }
+
+      //below condition helps to valid move for pawn
+
+      if (!this.pieces[pos] && Math.abs(this.prevY - this.y) === 0) return true;
     }
 
-    return this.pieces[pos] === undefined && Math.abs(this.prevY - this.y) === 0
-      ? true
-      : false;
+    return false;
   }
 
   isRook() {
@@ -216,7 +228,7 @@ class ValidMove {
 export const isValidMoveForCheckMate = (kingPosX, kingPosY, pieces) => {
   let grabPos = kingPosX.toString() + ":" + kingPosY.toString();
 
-  // console.log("checkmate->" + grabPos);
+  console.log("checkmate->" + grabPos);
 
   // up
 
@@ -304,7 +316,13 @@ export const isValidMoveForCheckMate = (kingPosX, kingPosY, pieces) => {
       }
 
       if (pieces[pos] && pieces[pos].color !== pieces[grabPos].color) {
-        if (pieces[pos].pieceName === "b" || pieces[pos].pieceName === "q") {
+        if (
+          pieces[pos].pieceName === "b" ||
+          pieces[pos].pieceName === "q" ||
+          (pieces[pos].pieceName === "p" &&
+            kingPosX - i === 1 &&
+            kingPosY - j === 1)
+        ) {
           console.log("leftup");
           checkMateCount++;
           break;
@@ -340,7 +358,13 @@ export const isValidMoveForCheckMate = (kingPosX, kingPosY, pieces) => {
       }
 
       if (pieces[pos] && pieces[pos].color !== pieces[grabPos].color) {
-        if (pieces[pos].pieceName === "b" || pieces[pos].pieceName === "q") {
+        if (
+          pieces[pos].pieceName === "b" ||
+          pieces[pos].pieceName === "q" ||
+          (pieces[pos].pieceName === "p" &&
+            kingPosX - i === 1 &&
+            j - kingPosY === 1)
+        ) {
           console.log("rightup");
           checkMateCount++;
           break;

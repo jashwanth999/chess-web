@@ -1,29 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
-// import { pieces } from "../helpers/imageHelpers";
 import Box from "../components/Box";
 import { socket } from "../helpers/socketHelper";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  changeKingPosition,
-  changeOpponentKingPosition,
   changeOpponentPiecePositionAction,
   changePiecePositionAction,
 } from "../api/action";
 import ChatBox from "../components/ChatBox";
-import { messageToSocket } from "../helpers/socketApiHelper";
-import {
-  isValidMoveForCheckMate,
-  pieceValidMethodMap,
-} from "../helpers/validHelpers";
-import { callingOpponentForCheckMate } from "../helpers/checkMateAttackHelpers";
-import {
-  checkMateStopFromOTherPiece,
-  kingAbleToMoveAfterCheckMate,
-} from "../helpers/finalCheckMateAttackHelpers";
-
-const h = [1, 2, 3, 4, 5, 6, 7, 8];
-const v = ["a", "b", "c", "d", "e", "f", "g", "h"];
+import { gridConstants, h, v } from "../helpers/imageHelpers";
+import { dropPiece, grabPiece, movePiece } from "../helpers/chessBoardHelpers";
+import KilledPieceComponent from "../components/KilledPieceComponent";
+import PawnReachedOtherSide from "../components/PawnReachedOtherSide";
 
 export default function ChessBoard() {
   const { roomid } = useParams();
@@ -48,351 +36,32 @@ export default function ChessBoard() {
 
   const [data, setData] = useState({});
 
+  const [killedPieces, setKilledPieces] = useState([]);
+
+  const [opponentKilledPieces, setOpponentKilledPieces] = useState([]);
+
+  const [myTurn, setMyTurn] = useState(
+    users[0].username === user.username ? true : false
+  );
+
+  const [minutes, setMinutes] = useState(10);
+
+  const [seconds, setSeconds] = useState(0);
+
+  const [opponentMinutes, setOpponentMinutes] = useState(10);
+
+  const [opponentSeconds, setOpponentSeconds] = useState(0);
+
+  const [pawnReachedOtherSideData, setPawnReachedOtherSideData] = useState({});
+
   const chessboardRef = useRef(null);
+
+  const audioRef = useRef();
   let board = [];
 
-  function grabPiece(e) {
-    try {
-      let element = e.target;
-      const chessboard = chessboardRef.current;
+  let timer;
 
-      // console.log(isCheckMate(pieces))
-
-      if (element.classList.contains("piece")) {
-        const grabX = Math.floor((e.clientX - chessboard.offsetLeft) / 70);
-        const grabY = Math.abs(
-          Math.floor((e.clientY - chessboard.offsetTop) / 70)
-        );
-
-        setGrabPosition([grabY, grabX]);
-
-        let grabpos = grabY.toString() + ":" + grabX.toString();
-
-        // console.log(grabpos)
-
-        // console.log(users,user.username)
-
-        if (
-          users[0].username === user.username &&
-          pieces[grabpos]?.color !== "b"
-        ) {
-          return;
-        } else if (
-          users[1].username === user.username &&
-          piecesOpponent[grabpos]?.color !== "w"
-        ) {
-          return;
-        }
-
-        const x = e.clientX - 70 / 2;
-        const y = e.clientY - 70 / 2;
-        element.style.position = "absolute";
-        element.style.left = `${x}px`;
-        element.style.top = `${y}px`;
-
-        setActivePiece(element);
-      }
-    } catch (e) {
-      console.log("Error while grabbing piece", e.message);
-    }
-  }
-
-  function movePiece(e) {
-    const chessboard = chessboardRef.current;
-    if (activePiece && chessboard) {
-      const minX = chessboard.offsetLeft;
-      const minY = chessboard.offsetTop;
-
-      const maxX = chessboard.offsetLeft + chessboard.clientWidth - 50;
-      const maxY = chessboard.offsetTop + chessboard.clientHeight - 65;
-
-      const x = e.clientX - 40;
-      const y = e.clientY - 40;
-      activePiece.style.position = "absolute";
-
-      // console.log(x, y);
-
-      //If x is smaller than minimum amount
-      if (x < minX) {
-        activePiece.style.position = "absolute";
-        activePiece.style.left = `${minX}px`;
-      }
-      //If x is bigger than maximum amount
-      else if (x > maxX) {
-        activePiece.style.position = "absolute";
-        activePiece.style.top = `${maxX}px`;
-
-        //   dropPiece(e);
-      }
-      //If x is in the constraints
-      else {
-        activePiece.style.position = "absolute";
-        activePiece.style.left = `${x}px`;
-      }
-
-      //If y is smaller than minimum amount
-      if (y < minY) {
-        activePiece.style.position = "absolute";
-        activePiece.style.top = `${minY}px`;
-      }
-      //If y is bigger than maximum amount
-      else if (y > maxY) {
-        activePiece.style.position = "absolute";
-        activePiece.style.top = `${maxY}px`;
-      }
-      //If y is in the constraints
-      else {
-        activePiece.style.position = "absolute";
-        activePiece.style.top = `${y}px`;
-      }
-    }
-  }
-
-  function dropPiece(e) {
-    try {
-      const chessboard = chessboardRef.current;
-      if (activePiece && chessboard) {
-        const x = Math.floor((e.clientX - chessboard.offsetLeft) / 70);
-        const y = Math.abs(Math.floor((e.clientY - chessboard.offsetTop) / 70));
-
-        // console.log(x, y);
-
-        let pos = y.toString() + ":" + x.toString();
-
-        // console.log(pos);
-
-        let posOp = (7 - y).toString() + ":" + x.toString();
-
-        let grabpos =
-          grabPosition[0].toString() + ":" + grabPosition[1].toString();
-
-        let grabposOp =
-          (7 - grabPosition[0]).toString() + ":" + grabPosition[1].toString();
-
-        // console.log(grabpos)
-
-        if (
-          !pieceValidMethodMap(
-            grabPosition[0],
-            grabPosition[1],
-            y,
-            x,
-            users[0]?.username === user.username
-              ? pieces[grabpos]?.pieceName
-              : piecesOpponent[grabpos]?.pieceName,
-            users[0]?.username === user.username ? pieces : piecesOpponent
-          )
-        ) {
-          activePiece.style.position = "relative";
-          activePiece.style.removeProperty("top");
-          activePiece.style.removeProperty("left");
-        } else if (users[0].username === user.username && pieces[grabpos]) {
-          let piecesData = pieces[grabpos];
-
-          let piecesDataOp = piecesOpponent[grabposOp];
-
-          let piecesPosData = pieces[pos];
-
-          let piecesPosDataOp = piecesOpponent[posOp];
-
-          if (
-            pieces[pos] &&
-            (pieces[pos].color === pieces[grabpos].color ||
-              pieces[pos].pieceName === "k")
-          ) {
-            activePiece.style.position = "relative";
-            activePiece.style.removeProperty("top");
-            activePiece.style.removeProperty("left");
-
-            setActivePiece(null);
-
-            return;
-          }
-
-          let kingFlag = false;
-
-          if (pieces[grabpos].pieceName === "k") {
-            kingFlag = true;
-            dispatch(changeKingPosition(pos));
-          }
-
-          pieces[grabpos] = "";
-          pieces[pos] = piecesData;
-
-          piecesOpponent[posOp] = piecesDataOp;
-          piecesOpponent[grabposOp] = "";
-
-          if (
-            isValidMoveForCheckMate(
-              kingFlag
-                ? Number(pos.split(":")[0])
-                : Number(kingPos.split(":")[0]),
-              kingFlag
-                ? Number(pos.split(":")[1])
-                : Number(kingPos.split(":")[1]),
-              pieces
-            )
-          ) {
-            pieces[grabpos] = piecesData;
-
-            pieces[pos] = piecesPosData;
-
-            piecesOpponent[grabposOp] = piecesDataOp;
-
-            piecesOpponent[posOp] = piecesPosDataOp;
-
-            if (kingFlag) {
-              dispatch(changeKingPosition(grabpos));
-            }
-
-            activePiece.style.position = "relative";
-            activePiece.style.removeProperty("top");
-            activePiece.style.removeProperty("left");
-
-            setActivePiece(null);
-
-            return;
-          }
-
-          //after success checking our move for checkmate
-
-          if (
-            callingOpponentForCheckMate(
-              7 - Number(kingPosOp.split(":")[0]),
-              Number(kingPosOp.split(":")[1]),
-              y,
-              x,
-              pieces[pos].pieceName,
-              pieces
-            )
-          ) {
-            console.log("check called by opponent");
-
-            // check whether king can do valid move or not
-            // need to check whether we can stop making checkmate with other piece
-
-            console.log(
-              checkMateStopFromOTherPiece(
-                pieces,
-                7 - Number(kingPosOp.split(":")[0]),
-                Number(kingPosOp.split(":")[1]),
-                y,
-                x
-              ),
-              kingAbleToMoveAfterCheckMate(
-                7 - Number(kingPosOp.split(":")[0]),
-                Number(kingPosOp.split(":")[1]),
-                pieces
-              )
-            );
-
-            if (
-              !checkMateStopFromOTherPiece(
-                pieces,
-                7 - Number(kingPosOp.split(":")[0]),
-                Number(kingPosOp.split(":")[1]),
-                y,
-                x
-              ) &&
-              !kingAbleToMoveAfterCheckMate(
-                7 - Number(kingPosOp.split(":")[0]),
-                Number(kingPosOp.split(":")[1]),
-                pieces
-              )
-            ) {
-              console.log("checkMate");
-            }
-          }
-
-          activePiece.style.position = "relative";
-          activePiece.style.removeProperty("top");
-          activePiece.style.removeProperty("left");
-
-          messageToSocket(roomid, pieces, piecesOpponent);
-        } else if (
-          users[1].username === user.username &&
-          piecesOpponent[grabpos]
-        ) {
-          let piecesData = piecesOpponent[grabpos];
-
-          let piecesDataOp = pieces[grabposOp];
-
-          let piecesPosData = piecesOpponent[pos];
-
-          let piecesPosDataOp = pieces[posOp];
-
-          if (
-            piecesOpponent[pos] &&
-            (piecesOpponent[pos].color === piecesOpponent[grabpos].color ||
-              piecesOpponent[pos].pieceName === "k")
-          ) {
-            activePiece.style.position = "relative";
-            activePiece.style.removeProperty("top");
-            activePiece.style.removeProperty("left");
-
-            setActivePiece(null);
-
-            return;
-          }
-
-          let kingFlag = false;
-
-          if (piecesOpponent[grabpos].pieceName === "k") {
-            kingFlag = true;
-            dispatch(changeOpponentKingPosition(pos));
-          }
-
-          piecesOpponent[grabpos] = "";
-          piecesOpponent[pos] = piecesData;
-
-          pieces[posOp] = piecesDataOp;
-          pieces[grabposOp] = "";
-
-          if (
-            isValidMoveForCheckMate(
-              kingFlag
-                ? Number(pos.split(":")[0])
-                : Number(kingPosOp.split(":")[0]),
-              kingFlag
-                ? Number(pos.split(":")[1])
-                : Number(kingPosOp.split(":")[1]),
-              piecesOpponent
-            )
-          ) {
-            piecesOpponent[grabpos] = piecesData;
-
-            piecesOpponent[pos] = piecesPosData;
-
-            pieces[grabposOp] = piecesDataOp;
-
-            pieces[posOp] = piecesPosDataOp;
-
-            if (kingFlag) {
-              dispatch(changeOpponentKingPosition(grabpos));
-            }
-
-            activePiece.style.position = "relative";
-            activePiece.style.removeProperty("top");
-            activePiece.style.removeProperty("left");
-
-            setActivePiece(null);
-
-            return;
-          }
-
-          activePiece.style.position = "relative";
-          activePiece.style.removeProperty("top");
-          activePiece.style.removeProperty("left");
-
-          messageToSocket(roomid, pieces, piecesOpponent);
-        }
-
-        setActivePiece(null);
-      }
-    } catch (e) {
-      console.log("Error while drop piece : ", e.message);
-    }
-  }
+  let opponentTimer;
 
   for (let i = 0; i < h.length; i++) {
     for (let j = 0; j < v.length; j++) {
@@ -408,6 +77,8 @@ export default function ChessBoard() {
               : piecesOpponent[cord]?.image
           }
           number={number}
+          row={i}
+          col={j}
         />
       );
     }
@@ -418,61 +89,215 @@ export default function ChessBoard() {
       dispatch(changePiecePositionAction(data.pieces));
       dispatch(changeOpponentPiecePositionAction(data.piecesOpponent));
       setData(data);
+
+      setMyTurn(data.turn);
+
+      console.log(data.killedPieces);
+
+      console.log(data.opponentKilledPieces);
+
+      setKilledPieces(data.killedPieces);
+
+      setOpponentKilledPieces(data.opponentKilledPieces);
+
+      // timer = data.time.timer;
+
+      // opponentTimer = data.time.opponentTimer;
+      // console.log(data.turn);
     });
   }, [dispatch, pieces, data, piecesOpponent, users, user]);
 
   // console.log(kingPosOp);
 
+  // console.log(myTurn);
+
+  // console.log(users);
+
+  // useEffect(() => {
+  //   if (myTurn) {
+  //     timer = setInterval(() => {
+  //       setSeconds(seconds - 1);
+
+  //       if (seconds === 0) {
+  //         setSeconds(59);
+  //         setMinutes(minutes - 1);
+  //       }
+  //     }, 1000);
+
+  //     return () => clearInterval(timer);
+  //   } else {
+  //     opponentTimer = setInterval(() => {
+  //       setOpponentSeconds(opponentSeconds - 1);
+
+  //       if (opponentSeconds === 0) {
+  //         setOpponentSeconds(59);
+  //         setOpponentMinutes(opponentMinutes - 1);
+  //       }
+  //     }, 1000);
+
+  //     return () => clearInterval(opponentTimer);
+  //   }
+  // });
+
+  // useEffect(() => {
+
+  // });
+
+  let time = {
+    timer: timer,
+    opponentTimer: opponentTimer,
+  };
+
   return (
     <div style={rootDiv}>
-      <div
-        onMouseMove={(e) => movePiece(e)}
-        onMouseDown={(e) => grabPiece(e)}
-        onMouseUp={(e) => dropPiece(e)}
-        ref={chessboardRef}
-        style={chessBoardDiv}
-      >
-        {board}
+      <div>
+        <div style={topAndBottomDiv}>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <h3 style={{ margin: 1, color: "white" }}>
+              {users[0].username === user.username
+                ? users[1].username
+                : users[0].username}
+            </h3>
+            <KilledPieceComponent
+              users={users}
+              user={user}
+              killedPieces={opponentKilledPieces}
+              opponentKilledPieces={killedPieces}
+            />
+          </div>
+
+          <h3 style={{ margin: 1, color: myTurn ? "white" : "#D35400" }}>
+            {" "}
+            {opponentMinutes.toString().length < 2
+              ? "0" + opponentMinutes
+              : opponentMinutes}
+            :
+            {opponentSeconds.toString().length < 2
+              ? "0" + opponentSeconds
+              : opponentSeconds}{" "}
+          </h3>
+        </div>
+
+        <div
+          onMouseMove={(e) =>
+            movePiece(e, chessboardRef, activePiece, setActivePiece)
+          }
+          onMouseDown={(e) =>
+            grabPiece(
+              e,
+              chessboardRef,
+              setGrabPosition,
+              users,
+              user,
+              pieces,
+              piecesOpponent,
+              setActivePiece,
+              gridConstants,
+              myTurn
+            )
+          }
+          onMouseUp={(e) =>
+            dropPiece(
+              e,
+              chessboardRef,
+              activePiece,
+              grabPosition,
+              users,
+              user,
+              pieces,
+              piecesOpponent,
+              audioRef,
+              setActivePiece,
+              setMyTurn,
+              dispatch,
+              timer,
+              opponentTimer,
+              kingPos,
+              kingPosOp,
+              myTurn,
+              killedPieces,
+              opponentKilledPieces,
+              setKilledPieces,
+              setOpponentKilledPieces,
+              roomid,
+              time,
+              setPawnReachedOtherSideData
+            )
+          }
+          // onTouchStart={(e) => grabPiece(e)}
+          // onTouchMove={(e) => movePiece(e)}
+          // onTouchEnd={(e) => dropPiece(e)}
+
+          ref={chessboardRef}
+          style={chessBoardDiv}
+        >
+          <PawnReachedOtherSide
+            pawnReachedOtherSideData={pawnReachedOtherSideData}
+            roomid={roomid}
+            setPawnReachedOtherSideData={setPawnReachedOtherSideData}
+          />
+          {board}
+        </div>
+
+        <div style={topAndBottomDiv}>
+          {" "}
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <h3 style={{ margin: 1, color: "white" }}> {user?.username} </h3>
+            <KilledPieceComponent
+              users={users}
+              user={user}
+              killedPieces={killedPieces}
+              opponentKilledPieces={opponentKilledPieces}
+            />
+          </div>
+          <h3 style={{ margin: 1, color: myTurn ? "#D35400" : "white" }}>
+            {" "}
+            {minutes.toString().length < 2 ? "0" + minutes : minutes}:
+            {seconds.toString().length < 2 ? "0" + seconds : seconds}{" "}
+          </h3>
+        </div>
+
+        <audio src={require("../sounds/piece-move.wav")} ref={audioRef} />
       </div>
 
-      {/* <div style={rightDiv}>
-        <h3 style={{ color: "white", margin: 0 }}>
-          {" "}
-          {user.username === users[0].username
-            ? users[1].username
-            : users[0].username}
-        </h3>
-
-        <ChatBox roomId={roomid} username={user.username} socket={socket} />
-        <h3 style={{ color: "white", margin: 0 }}> {user.username}</h3>
-      </div> */}
+      <ChatBox roomId={roomid} username={user.username} socket={socket} />
     </div>
   );
 }
 
 const rootDiv = {
   display: "flex",
-  justifyContent: "space-around",
-  height: "100vh",
+  justifyContent: "center",
+  minHeight: "100vh",
   alignItems: "center",
   flexDirection: "row",
-  backgroundColor: "#34495E",
+  backgroundColor: "#212F3D",
+  flexWrap: "wrap",
 };
 const chessBoardDiv = {
-  height: 560,
-  width: 560,
+  height: gridConstants.gridSize,
+  width: gridConstants.gridSize,
   backgroundColor: "orange",
+  borderRadius: 2,
   display: "grid",
   flexWrap: "wrap",
-  gridTemplateColumns: "repeat(8,70px)",
-  gridTemplateRows: "repeat(8,70px)",
+  gridTemplateColumns: `repeat(8,${gridConstants.gridSize / 8}px)`,
+  gridTemplateRows: `repeat(8,${gridConstants.gridSize / 8}px)`,
+};
+
+const topAndBottomDiv = {
+  width: gridConstants.gridSize - 5,
+  display: "flex",
+  justifyContent: "space-between",
+  margin: 5,
+  padding: 2,
+  height: 40,
 };
 
 const rightDiv = {
-  display: "flex",
-  flex: 0.7,
   margin: 10,
   flexDirection: "column",
-  height: "100vh",
+  height: gridConstants.gridSize,
+  width: gridConstants.gridSize,
   justifyContent: "space-around",
 };
