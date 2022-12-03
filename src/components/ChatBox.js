@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from "react";
+import { gridConstants } from "../helpers/imageHelpers";
+import "../css/chat.css";
 
 export default function ChatBox({ roomId, socket, username }) {
   const [message, setMessage] = useState("");
 
   const [allMessages, setAllMessages] = useState([]);
 
-  const sendMessage = () => {
+  const sendMessage = (e) => {
+    e.preventDefault();
+    if (message === "") return;
+
     setAllMessages([...allMessages, { message, roomId, username }]);
 
     socket.emit("send_message", { message, roomId, username });
@@ -19,14 +24,12 @@ export default function ChatBox({ roomId, socket, username }) {
     });
   }, [socket, allMessages]);
 
- 
-
   return (
     <div style={chatDiv}>
-      <div style={messagesDiv}>
+      <div className="messagesDiv" style={messagesDiv}>
         {allMessages.map((data, index) => {
           return (
-            <h5 key={index} style={{ margin: 1 }}>
+            <h5 key={index} style={{ margin: 1, color: "#D0D3D4",wordWrap:'break-word' }}>
               {" "}
               {data.username}: {data.message}{" "}
             </h5>
@@ -34,56 +37,54 @@ export default function ChatBox({ roomId, socket, username }) {
         })}
       </div>
 
-      <div style={messageInputDiv}>
+      <form onSubmit={sendMessage} style={messageInputDiv}>
         <input
           style={messageInputStyle}
           placeholder="send message"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
         />
-        <button style={sendButton} onClick={sendMessage}>
-          {" "}
-          send
-        </button>
-      </div>
+      </form>
     </div>
   );
 }
 
 const messagesDiv = {
   flex: 1,
-  backgroundColor: "white",
   borderRadius: 5,
   borderBottomRightRadius: 0,
   borderBottomLeftRadius: 0,
   margin: 2,
   overflowY: "scroll",
+  padding: 5,
 };
 
 const chatDiv = {
-  flex: 0.8,
-  height: "90vh",
-  borderRadius: 5,
+  height: gridConstants.gridSize,
+  width: gridConstants.gridSize,
+  borderRadius: 2,
   display: "flex",
   flexDirection: "column",
+  marginLeft: 10,
+  backgroundColor: "rgb(46, 46, 46)",
 };
 
 const messageInputDiv = {
-  backgroundColor: "white",
   flex: 0.05,
   display: "flex",
   flexDirection: "row",
-  borderBottomLeftRadius: 5,
-  borderBottomRightRadius: 5,
+  borderBottomLeftRadius: 2,
+  borderBottomRightRadius: 2,
 };
 
 const messageInputStyle = {
   padding: 5,
   flex: 1,
-  borderBottomLeftRadius: 5,
+  borderBottomLeftRadius: 2,
+  borderBottomRightRadius: 2,
   outline: "none",
-};
-
-const sendButton = {
-  borderBottomRightRadius: 5,
+  border: "none",
+  backgroundColor: "rgb(46, 46, 46)",
+  borderTop:'0.5px solid black',
+  color:'white'
 };

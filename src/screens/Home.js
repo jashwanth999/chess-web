@@ -11,48 +11,96 @@ export default function Home() {
   const [username, setUsername] = useState("");
   const [roomId, setRoomId] = useState("");
 
+  const [roomUsers, setRoomUsers] = useState([]);
+
   const users = useSelector((state) => state.users.users);
 
   const joinChessRoom = () => {
+    if (username === " " || roomId === "")
+      return alert("please enter all details");
     socket.emit("join_room", {
       username,
       roomId,
     });
 
-    if (users.length > 2) return alert("room is full");
+    if (users.length > 1) return alert("room is full");
 
     dispatch(addUser({ username, roomId }));
 
     navigate(`/waiting/${roomId}`);
   };
 
+  // console.log(roomUsers);
+
+  useEffect(() => {
+    // we need get data from db and check numbers of users present in room
+  }, []);
+
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        height: "100vh",
-        alignItems: "center",
-        flexDirection: "column",
-      }}
-    >
-      <h2> Welcome to Chess</h2>
-      <h3 style={{ margin: 4 }}> Username</h3>
-      <input
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        placeholder="username"
-      />
-      <br />
-      <h3 style={{ margin: 4 }}> Room Id</h3>
+    <div style={rootDiv}>
+      <div style={loginDiv}>
+        <h2> A23 Chess</h2>
 
-      <input
-        value={roomId}
-        onChange={(e) => setRoomId(e.target.value)}
-        placeholder="enter roomid"
-      />
+        <input
+          style={inputStyle}
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Username"
+        />
+        <br />
 
-      <button onClick={joinChessRoom}> Join</button>
+        <input
+          style={inputStyle}
+          value={roomId}
+          onChange={(e) => setRoomId(e.target.value)}
+          placeholder="Room Id"
+        />
+
+        <button style={joinButtonStyle} onClick={joinChessRoom}>
+          {" "}
+          Join
+        </button>
+      </div>
     </div>
   );
 }
+
+const rootDiv = {
+  display: "flex",
+  justifyContent: "center",
+  height: "100vh",
+  alignItems: "center",
+  backgroundColor: "rgb(46, 46, 46)",
+};
+
+const loginDiv = {
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  flexDirection: "column",
+  backgroundColor: "white",
+  width: "25%",
+  height: "40vh",
+  borderRadius: 5,
+};
+
+const inputStyle = {
+  width: "60%",
+  padding: 5,
+  outline: "none",
+  backgroundColor: "rgb(255, 253, 234);",
+  border: "none",
+  borderBottom: "1px solid black",
+};
+
+const joinButtonStyle = {
+  backgroundColor: "green",
+  width: "28%",
+  padding: 5,
+  border: "none",
+  outline: "none",
+  borderRadius: 2,
+  color: "white",
+  marginTop: 8,
+  cursor:'pointer'
+};

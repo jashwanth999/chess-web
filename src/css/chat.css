@@ -1,0 +1,3 @@
+.messagesDiv::-webkit-scrollbar {
+  display: none;
+}

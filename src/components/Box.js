@@ -1,8 +1,8 @@
 import React from "react";
 import "../css/pieces.css";
+import { gridConstants, h, v } from "../helpers/imageHelpers";
 
-export default function Box({ number, image }) {
- 
+export default function Box({ number, image, row, col }) {
   if (number % 2 === 0) {
     return (
       <div
@@ -17,8 +17,8 @@ export default function Box({ number, image }) {
             style={{
               backgroundImage: `url(${image})`,
               backgroundSize: "cover",
-              height: 70,
-              width: 70,
+              height: gridConstants.gridSize / 8,
+              width: gridConstants.gridSize / 8,
             }}
             className="piece"
           />
@@ -38,8 +38,8 @@ export default function Box({ number, image }) {
             style={{
               backgroundImage: `url(${image})`,
               backgroundSize: "cover",
-              height: 70,
-              width: 70,
+              height: gridConstants.gridSize / 8,
+              width: gridConstants.gridSize / 8,
             }}
             className="piece"
           />
@@ -47,3 +47,19 @@ export default function Box({ number, image }) {
       </div>
     );
 }
+
+const rowNameStyle = {
+  color: "black",
+  position: "absolute",
+  margin: 0,
+  fontSize: 12,
+};
+
+const colNameStyle = {
+  color: "black",
+  margin: 0,
+  fontSize: 12,
+  position: "absolute",
+  bottom: "12%",
+  marginLeft: 2,
+};
