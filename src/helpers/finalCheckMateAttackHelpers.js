@@ -385,11 +385,7 @@ const allDirTraverse = (
     let pos = i.toString() + ":" + j.toString();
 
     if (pieces[pos] && pieces[kingPos].color !== pieces[pos].color) {
-      if (
-        pieces[pos].pieceName === "b" ||
-        pieces[pos].pieceName === "r" ||
-        pieces[pos].pieceName === "p"
-      ) {
+      if (pieces[pos].pieceName === "b" || pieces[pos].pieceName === "r") {
         console.log("leftUp");
         return false;
       }
@@ -409,9 +405,11 @@ const allDirTraverse = (
       if (
         pieces[pos].pieceName === "b" ||
         pieces[pos].pieceName === "r" ||
-        pieces[pos].pieceName === "p"
+        (pieces[pos].pieceName === "p" &&
+          Math.abs(kingNextMovePosX - i) === 1 &&
+          Math.abs(j - kingNextMovePosY) === 1)
       ) {
-        console.log("leftDown");
+        console.log(pieces[pos].pieceName, "leftDown");
         return false;
       }
     }
@@ -425,11 +423,7 @@ const allDirTraverse = (
     let pos = i.toString() + ":" + j.toString();
 
     if (pieces[pos] && pieces[kingPos].color !== pieces[pos].color) {
-      if (
-        pieces[pos].pieceName === "b" ||
-        pieces[pos].pieceName === "r" ||
-        pieces[pos].pieceName === "p"
-      ) {
+      if (pieces[pos].pieceName === "b" || pieces[pos].pieceName === "r") {
         console.log("rightUp");
         return false;
       }
@@ -447,7 +441,9 @@ const allDirTraverse = (
       if (
         pieces[pos].pieceName === "b" ||
         pieces[pos].pieceName === "r" ||
-        pieces[pos].pieceName === "p"
+        (pieces[pos].pieceName === "p" &&
+          Math.abs(i - kingNextMovePosX) === 1 &&
+          Math.abs(j - kingNextMovePosY) === 1)
       ) {
         console.log("rightDown");
         return false;
