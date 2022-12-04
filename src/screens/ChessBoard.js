@@ -12,6 +12,7 @@ import { gridConstants, h, v } from "../helpers/imageHelpers";
 import { dropPiece, grabPiece, movePiece } from "../helpers/chessBoardHelpers";
 import KilledPieceComponent from "../components/KilledPieceComponent";
 import PawnReachedOtherSide from "../components/PawnReachedOtherSide";
+import CheckMatePopUp from "../components/CheckMatePopUp";
 
 export default function ChessBoard() {
   const { roomid } = useParams();
@@ -53,6 +54,10 @@ export default function ChessBoard() {
   const [opponentSeconds, setOpponentSeconds] = useState(0);
 
   const [pawnReachedOtherSideData, setPawnReachedOtherSideData] = useState({});
+
+  const [opponetCalledForCheck, setOpponentCalledForCheck] = useState(false);
+
+  const [checkMatePopupData, setCheckMatePopUpData] = useState();
 
   const chessboardRef = useRef(null);
 
@@ -106,6 +111,12 @@ export default function ChessBoard() {
       // console.log(data.turn);
     });
   }, [dispatch, pieces, data, piecesOpponent, users, user]);
+
+  useEffect(() => {
+    socket.on("recieve_check_mate_data", (data) => {
+      setCheckMatePopUpData(data);
+    });
+  }, [checkMatePopupData]);
 
   // console.log(kingPosOp);
 
@@ -221,7 +232,9 @@ export default function ChessBoard() {
               setOpponentKilledPieces,
               roomid,
               time,
-              setPawnReachedOtherSideData
+              setPawnReachedOtherSideData,
+              setOpponentCalledForCheck,
+              setCheckMatePopUpData
             )
           }
           // onTouchStart={(e) => grabPiece(e)}
@@ -258,6 +271,14 @@ export default function ChessBoard() {
         </div>
 
         <audio src={require("../sounds/piece-move.wav")} ref={audioRef} />
+
+        {checkMatePopupData && (
+          <CheckMatePopUp
+            checkMatePopupData={checkMatePopupData}
+            setCheckMatePopUpData={setCheckMatePopUpData}
+            username={user.username}
+          />
+        )}
       </div>
 
       <ChatBox roomId={roomid} username={user.username} socket={socket} />

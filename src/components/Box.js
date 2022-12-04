@@ -1,6 +1,6 @@
 import React from "react";
 import "../css/pieces.css";
-import { gridConstants, h, v } from "../helpers/imageHelpers";
+import { gridConstants } from "../helpers/imageHelpers";
 
 export default function Box({ number, image, row, col }) {
   if (number % 2 === 0) {
@@ -10,6 +10,7 @@ export default function Box({ number, image, row, col }) {
           display: "flex",
           flex: 1,
           backgroundColor: "#F5F7D7",
+          // border:row===0 && col===4 ?'1.5px solid red' : ""
         }}
       >
         {image && (

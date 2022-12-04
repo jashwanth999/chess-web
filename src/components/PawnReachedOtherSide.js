@@ -7,7 +7,7 @@ import {
 
 export default function PawnReachedOtherSide(props) {
 
-    console.log(props.pawnReachedOtherSideData)
+  
   return (
     <div
       style={{

@@ -78,17 +78,17 @@ const loginDiv = {
   justifyContent: "center",
   alignItems: "center",
   flexDirection: "column",
-  backgroundColor: "white",
   width: "25%",
   height: "40vh",
   borderRadius: 5,
+  backgroundColor: "rgb(255, 253, 234)",
 };
 
 const inputStyle = {
   width: "60%",
   padding: 5,
   outline: "none",
-  backgroundColor: "rgb(255, 253, 234);",
+  backgroundColor: "rgb(255, 253, 234)",
   border: "none",
   borderBottom: "1px solid black",
 };
@@ -102,5 +102,5 @@ const joinButtonStyle = {
   borderRadius: 2,
   color: "white",
   marginTop: 8,
-  cursor:'pointer'
+  cursor: "pointer",
 };

@@ -19,3 +19,11 @@ export const messageToSocket = (
     time,
   });
 };
+
+export const checkMateMessageToSocket = (roomid, winnerName, color) => {
+  socket.emit("send_check_mate_data", {
+    roomId: roomid,
+    winnerName,
+    color: color,
+  });
+};

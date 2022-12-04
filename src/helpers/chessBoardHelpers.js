@@ -5,7 +5,7 @@ import {
   kingAbleToMoveAfterCheckMate,
 } from "./finalCheckMateAttackHelpers";
 import { gridConstants } from "./imageHelpers";
-import { messageToSocket } from "./socketApiHelper";
+import { checkMateMessageToSocket, messageToSocket } from "./socketApiHelper";
 import { isValidMoveForCheckMate, pieceValidMethodMap } from "./validHelpers";
 
 export const grabPiece = (
@@ -84,42 +84,42 @@ export const movePiece = (e, chessboardRef, activePiece, setActivePiece) => {
     const x = e.clientX - 40;
     const y = e.clientY - 40;
     activePiece.style.position = "absolute";
-    // activePiece.style.left = `${x}px`;
-    // activePiece.style.top = `${y}px`;
+    activePiece.style.left = `${x}px`;
+    activePiece.style.top = `${y}px`;
 
     // console.log(x, y);
 
     // If x is smaller than minimum amount
-    if (x < minX) {
-      activePiece.style.position = "absolute";
-      activePiece.style.left = `${minX}px`;
-    }
-    //If x is bigger than maximum amount
-    else if (x > maxX) {
-      activePiece.style.position = "absolute";
-      activePiece.style.left = `${maxX}px`;
-    }
-    //If x is in the constraints
-    else {
-      activePiece.style.position = "absolute";
-      activePiece.style.left = `${x}px`;
-    }
+    //   if (x < minX) {
+    //     activePiece.style.position = "absolute";
+    //     activePiece.style.left = `${minX}px`;
+    //   }
+    //   //If x is bigger than maximum amount
+    //   else if (x > maxX) {
+    //     activePiece.style.position = "absolute";
+    //     activePiece.style.left = `${maxX}px`;
+    //   }
+    //   //If x is in the constraints
+    //   else {
+    //     activePiece.style.position = "absolute";
+    //     activePiece.style.left = `${x}px`;
+    //   }
 
-    //If y is smaller than minimum amount
-    if (y < minY) {
-      activePiece.style.position = "absolute";
-      activePiece.style.top = `${minY}px`;
-    }
-    //If y is bigger than maximum amount
-    else if (y > maxY) {
-      activePiece.style.position = "absolute";
-      activePiece.style.top = `${maxY}px`;
-    }
-    //If y is in the constraints
-    else {
-      activePiece.style.position = "absolute";
-      activePiece.style.top = `${y}px`;
-    }
+    //   //If y is smaller than minimum amount
+    //   if (y < minY) {
+    //     activePiece.style.position = "absolute";
+    //     activePiece.style.top = `${minY}px`;
+    //   }
+    //   //If y is bigger than maximum amount
+    //   else if (y > maxY) {
+    //     activePiece.style.position = "absolute";
+    //     activePiece.style.top = `${maxY}px`;
+    //   }
+    //   //If y is in the constraints
+    //   else {
+    //     activePiece.style.position = "absolute";
+    //     activePiece.style.top = `${y}px`;
+    //   }
   }
 };
 export const dropPiece = (
@@ -146,7 +146,9 @@ export const dropPiece = (
   setOpponentKilledPieces,
   roomid,
   time,
-  setPawnReachedOtherSideData
+  setPawnReachedOtherSideData,
+  setOpponentCalledForCheck,
+  setCheckMatePopUpData
 ) => {
   try {
     const chessboard = chessboardRef.current;
@@ -278,6 +280,8 @@ export const dropPiece = (
         ) {
           console.log("check called by opponent");
 
+          setOpponentCalledForCheck(true);
+
           let checkMateCount = isValidMoveForCheckMate(
             7 - Number(kingPos.split(":")[0]),
             Number(kingPos.split(":")[1]),
@@ -310,9 +314,15 @@ export const dropPiece = (
               pieces
             )
           ) {
-            console.log("check mate");
+            setCheckMatePopUpData({
+              roomId: roomid,
+              winnerName: users[0].username,
+              color: "b",
+            });
+
+            checkMateMessageToSocket(roomid, users[0].username, "b");
           }
-        }
+        } else setOpponentCalledForCheck(false);
 
         activePiece.style.position = "relative";
         activePiece.style.removeProperty("top");
@@ -345,6 +355,7 @@ export const dropPiece = (
             opponent: false,
           });
         }
+
         messageToSocket(
           roomid,
           pieces,
@@ -446,6 +457,8 @@ export const dropPiece = (
         ) {
           console.log("check called by opponent");
 
+          setOpponentCalledForCheck(true);
+
           let checkMateCount = isValidMoveForCheckMate(
             7 - Number(kingPos.split(":")[0]),
             Number(kingPos.split(":")[1]),
@@ -478,9 +491,15 @@ export const dropPiece = (
               piecesOpponent
             )
           ) {
-            console.log("check mate");
+            setCheckMatePopUpData({
+              roomId: roomid,
+              winnerName: users[1].username,
+              color: "w",
+            });
+
+            checkMateMessageToSocket(roomid, users[1].username, "w");
           }
-        }
+        } else setOpponentCalledForCheck(false);
 
         activePiece.style.position = "relative";
         activePiece.style.removeProperty("top");
