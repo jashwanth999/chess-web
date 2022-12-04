@@ -21,56 +21,56 @@ export const grabPiece = (
   myTurn,
   checkMatePopupData
 ) => {
-  if (myTurn && !checkMatePopupData) {
-    try {
-      let element = e.target;
+  // if (myTurn && !checkMatePopupData) {
+  try {
+    let element = e.target;
 
-      const chessboard = chessboardRef.current;
+    const chessboard = chessboardRef.current;
 
-      // console.log(isCheckMate(pieces))
+    // console.log(isCheckMate(pieces))
 
-      if (element.classList.contains("piece")) {
-        const grabX = Math.floor(
-          (e.clientX - chessboard.offsetLeft) / (gridConstants.gridSize / 8)
-        );
-        const grabY = Math.abs(
-          Math.floor(
-            (e.clientY - chessboard.offsetTop) / (gridConstants.gridSize / 8)
-          )
-        );
+    if (element.classList.contains("piece")) {
+      const grabX = Math.floor(
+        (e.clientX - chessboard.offsetLeft) / (gridConstants.gridSize / 8)
+      );
+      const grabY = Math.abs(
+        Math.floor(
+          (e.clientY - chessboard.offsetTop) / (gridConstants.gridSize / 8)
+        )
+      );
 
-        setGrabPosition([grabY, grabX]);
+      setGrabPosition([grabY, grabX]);
 
-        let grabpos = grabY.toString() + ":" + grabX.toString();
+      let grabpos = grabY.toString() + ":" + grabX.toString();
 
-        // console.log(grabpos);
+      // console.log(grabpos);
 
-        // console.log(users,user.username)
+      // console.log(users,user.username)
 
-        if (
-          users[0].username === user.username &&
-          pieces[grabpos]?.color !== "b"
-        ) {
-          return;
-        } else if (
-          users[1].username === user.username &&
-          piecesOpponent[grabpos]?.color !== "w"
-        ) {
-          return;
-        }
-
-        const x = e.clientX - gridConstants.gridSize / 8 / 2;
-        const y = e.clientY - gridConstants.gridSize / 8 / 2;
-        element.style.position = "absolute";
-        element.style.left = `${x}px`;
-        element.style.top = `${y}px`;
-
-        setActivePiece(element);
+      if (
+        users[0].username === user.username &&
+        pieces[grabpos]?.color !== "b"
+      ) {
+        return;
+      } else if (
+        users[1].username === user.username &&
+        piecesOpponent[grabpos]?.color !== "w"
+      ) {
+        return;
       }
-    } catch (e) {
-      console.log("Error while grabbing piece", e.message);
+
+      const x = e.clientX - gridConstants.gridSize / 8 / 2;
+      const y = e.clientY - gridConstants.gridSize / 8 / 2;
+      element.style.position = "absolute";
+      element.style.left = `${x}px`;
+      element.style.top = `${y}px`;
+
+      setActivePiece(element);
     }
+  } catch (e) {
+    console.log("Error while grabbing piece", e.message);
   }
+  // }
 };
 
 export const movePiece = (e, chessboardRef, activePiece, setActivePiece) => {
