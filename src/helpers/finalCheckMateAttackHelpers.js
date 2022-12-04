@@ -318,7 +318,6 @@ const allDirTraverse = (
   pieces,
   kingPos
 ) => {
-  //   console.log(kingNextMovePosX, kingNextMovePosY);
   //down
 
   if (
@@ -329,7 +328,7 @@ const allDirTraverse = (
   )
     return false;
 
-  for (let i = kingNextMovePosX; i < 8; i++) {
+  for (let i = kingNextMovePosX + 1; i < 8; i++) {
     let pos = i.toString() + ":" + kingNextMovePosY.toString();
 
     if (pieces[pos] && pieces[kingPos].color !== pieces[pos].color) {
@@ -341,7 +340,7 @@ const allDirTraverse = (
   }
   //right
 
-  for (let i = kingNextMovePosY; i < 8; i++) {
+  for (let i = kingNextMovePosY + 1; i < 8; i++) {
     let pos = kingNextMovePosX.toString() + ":" + i.toString();
 
     if (pieces[pos] && pieces[kingPos].color !== pieces[pos].color) {
@@ -353,7 +352,7 @@ const allDirTraverse = (
   }
   //up
 
-  for (let i = kingNextMovePosX; i >= 0; i--) {
+  for (let i = kingNextMovePosX - 1; i >= 0; i--) {
     let pos = i.toString() + ":" + kingNextMovePosY.toString();
 
     if (pieces[pos] && pieces[kingPos].color !== pieces[pos].color) {
@@ -365,7 +364,7 @@ const allDirTraverse = (
   }
   //left
 
-  for (let i = kingNextMovePosY; i >= 0; i--) {
+  for (let i = kingNextMovePosY - 1; i >= 0; i--) {
     let pos = kingNextMovePosX.toString() + ":" + i.toString();
 
     if (pieces[pos] && pieces[kingPos].color !== pieces[pos].color) {
@@ -379,7 +378,7 @@ const allDirTraverse = (
   //leftUp
 
   for (
-    let i = kingNextMovePosX, j = kingNextMovePosY;
+    let i = kingNextMovePosX - 1, j = kingNextMovePosY - 1;
     i >= 0 && j >= 0;
     i--, j--
   ) {
@@ -400,7 +399,7 @@ const allDirTraverse = (
   //leftDown
 
   for (
-    let i = kingNextMovePosX, j = kingNextMovePosY;
+    let i = kingNextMovePosX + 1, j = kingNextMovePosY - 1;
     i < 8 && j >= 0;
     i++, j--
   ) {
@@ -419,7 +418,7 @@ const allDirTraverse = (
   }
   //rightUp
   for (
-    let i = kingNextMovePosX, j = kingNextMovePosY;
+    let i = kingNextMovePosX - 1, j = kingNextMovePosY + 1;
     i >= 0 && j < 8;
     i--, j++
   ) {
@@ -438,7 +437,7 @@ const allDirTraverse = (
   }
   //rightDown
   for (
-    let i = kingNextMovePosX, j = kingNextMovePosY;
+    let i = kingNextMovePosX + 1, j = kingNextMovePosY + 1;
     i < 8 && j < 8;
     i++, j++
   ) {

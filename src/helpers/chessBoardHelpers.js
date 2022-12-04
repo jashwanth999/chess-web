@@ -18,55 +18,58 @@ export const grabPiece = (
   piecesOpponent,
   setActivePiece,
   gridConstants,
-  myTurn
+  myTurn,
+  checkMatePopupData
 ) => {
-  try {
-    let element = e.target;
+  if (myTurn && !checkMatePopupData) {
+    try {
+      let element = e.target;
 
-    const chessboard = chessboardRef.current;
+      const chessboard = chessboardRef.current;
 
-    // console.log(isCheckMate(pieces))
+      // console.log(isCheckMate(pieces))
 
-    if (element.classList.contains("piece")) {
-      const grabX = Math.floor(
-        (e.clientX - chessboard.offsetLeft) / (gridConstants.gridSize / 8)
-      );
-      const grabY = Math.abs(
-        Math.floor(
-          (e.clientY - chessboard.offsetTop) / (gridConstants.gridSize / 8)
-        )
-      );
+      if (element.classList.contains("piece")) {
+        const grabX = Math.floor(
+          (e.clientX - chessboard.offsetLeft) / (gridConstants.gridSize / 8)
+        );
+        const grabY = Math.abs(
+          Math.floor(
+            (e.clientY - chessboard.offsetTop) / (gridConstants.gridSize / 8)
+          )
+        );
 
-      setGrabPosition([grabY, grabX]);
+        setGrabPosition([grabY, grabX]);
 
-      let grabpos = grabY.toString() + ":" + grabX.toString();
+        let grabpos = grabY.toString() + ":" + grabX.toString();
 
-      // console.log(grabpos);
+        // console.log(grabpos);
 
-      // console.log(users,user.username)
+        // console.log(users,user.username)
 
-      if (
-        users[0].username === user.username &&
-        pieces[grabpos]?.color !== "b"
-      ) {
-        return;
-      } else if (
-        users[1].username === user.username &&
-        piecesOpponent[grabpos]?.color !== "w"
-      ) {
-        return;
+        if (
+          users[0].username === user.username &&
+          pieces[grabpos]?.color !== "b"
+        ) {
+          return;
+        } else if (
+          users[1].username === user.username &&
+          piecesOpponent[grabpos]?.color !== "w"
+        ) {
+          return;
+        }
+
+        const x = e.clientX - gridConstants.gridSize / 8 / 2;
+        const y = e.clientY - gridConstants.gridSize / 8 / 2;
+        element.style.position = "absolute";
+        element.style.left = `${x}px`;
+        element.style.top = `${y}px`;
+
+        setActivePiece(element);
       }
-
-      const x = e.clientX - gridConstants.gridSize / 8 / 2;
-      const y = e.clientY - gridConstants.gridSize / 8 / 2;
-      element.style.position = "absolute";
-      element.style.left = `${x}px`;
-      element.style.top = `${y}px`;
-
-      setActivePiece(element);
+    } catch (e) {
+      console.log("Error while grabbing piece", e.message);
     }
-  } catch (e) {
-    console.log("Error while grabbing piece", e.message);
   }
 };
 
@@ -298,7 +301,13 @@ export const dropPiece = (
                 pieces
               )
             ) {
-              console.log("checkMate");
+              setCheckMatePopUpData({
+                roomId: roomid,
+                winnerName: users[0].username,
+                color: "b",
+              });
+
+              checkMateMessageToSocket(roomid, users[0].username, "b");
             }
           } else if (
             !checkMateStopFromOTherPiece(
@@ -475,7 +484,13 @@ export const dropPiece = (
                 piecesOpponent
               )
             ) {
-              console.log("checkMate");
+              setCheckMatePopUpData({
+                roomId: roomid,
+                winnerName: users[1].username,
+                color: "w",
+              });
+
+              checkMateMessageToSocket(roomid, users[1].username, "w");
             }
           } else if (
             !checkMateStopFromOTherPiece(

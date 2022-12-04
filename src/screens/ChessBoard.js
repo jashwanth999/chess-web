@@ -204,7 +204,8 @@ export default function ChessBoard() {
               piecesOpponent,
               setActivePiece,
               gridConstants,
-              myTurn
+              myTurn,
+              checkMatePopupData
             )
           }
           onMouseUp={(e) =>
