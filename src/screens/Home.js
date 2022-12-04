@@ -78,8 +78,8 @@ const loginDiv = {
   justifyContent: "center",
   alignItems: "center",
   flexDirection: "column",
-  width: "25%",
-  height: "40vh",
+  width: 250,
+  height: 200,
   borderRadius: 5,
   backgroundColor: "rgb(255, 253, 234)",
 };
