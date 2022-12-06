@@ -595,3 +595,17 @@ export const changePawnRechedOtherSizeData = (
 
   setPawnReachedOtherSideData({});
 };
+
+export const getTurn = (users, user) => {
+  if (users[0].username === user.username) {
+    if (users[0].color === "w") return true;
+  }
+
+  if (users[1].username === user.username) {
+    if (users[1].color === "w") return true;
+  }
+
+  
+
+  return false;
+};

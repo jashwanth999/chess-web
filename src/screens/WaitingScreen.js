@@ -1,35 +1,29 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { addUsers } from "../api/action";
+import { addUser, addUsers } from "../api/action";
 import { socket } from "../helpers/socketHelper";
 
 export default function WaitingScreen() {
   const [data, setData] = useState([]);
-  const { roomid } = useParams();
 
   const navigate = useNavigate();
 
   const dispatch = useDispatch();
 
-  const moveToChessScreen = () => {
-    navigate(`/room/${roomid}`);
-  };
-
   useEffect(() => {
-    socket.emit("get_data_room", { roomid });
-    socket.on("recieve_users_to_room", (data) => {
+    socket.on("recieve_room_users", (data) => {
       setData(data);
 
-      if (data.length > 1) {
-        data[0] = { username: data[0].username, color: "b" };
-        data[1] = { username: data[1].username, color: "w" };
+      // console.log(data);
 
-        dispatch(addUsers(data));
-        moveToChessScreen();
-      }
+      dispatch(addUsers(data));
+
+     
+
+      navigate(`/room/${data[0].roomId}`);
     });
-  }, [data, roomid, dispatch]);
+  }, [dispatch]);
 
   return (
     <div style={rootDiv}>

@@ -158,7 +158,7 @@ class CheckMateAttack {
         break;
       }
 
-      console.log(this.pieces[pos]?.color, currentPieceColor, i, j);
+      
 
       if (this.pieces[pos] && this.pieces[pos].color !== currentPieceColor) {
         if (i === this.kingPosX && j === this.kingPosY) {

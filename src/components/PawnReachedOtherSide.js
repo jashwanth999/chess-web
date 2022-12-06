@@ -6,8 +6,6 @@ import {
 } from "../helpers/imageHelpers";
 
 export default function PawnReachedOtherSide(props) {
-
-  
   return (
     <div
       style={{
@@ -24,6 +22,7 @@ export default function PawnReachedOtherSide(props) {
         ? pawnReachedOtherSidePieces.map((piece, index) => {
             return (
               <img
+                key={index}
                 onClick={() => {
                   changePawnRechedOtherSizeData(
                     {
@@ -43,6 +42,7 @@ export default function PawnReachedOtherSide(props) {
         : opponentPawnReachedOtherSidePieces.map((piece, index) => {
             return (
               <img
+                key={index}
                 onClick={() => {
                   changePawnRechedOtherSizeData(
                     {
