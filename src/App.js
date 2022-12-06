@@ -9,7 +9,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/waiting/:roomid" element={<WaitingScreen />} />
+        <Route path="/waiting" element={<WaitingScreen />} />
         <Route path="/room/:roomid" element={<ChessBoard />} />
       </Routes>
     </Router>

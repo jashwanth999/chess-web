@@ -9,7 +9,7 @@ import {
 } from "../api/action";
 import ChatBox from "../components/ChatBox";
 import { gridConstants, h, v } from "../helpers/imageHelpers";
-import { dropPiece, grabPiece, movePiece } from "../helpers/chessBoardHelpers";
+import { dropPiece, getTurn, grabPiece, movePiece } from "../helpers/chessBoardHelpers";
 import KilledPieceComponent from "../components/KilledPieceComponent";
 import PawnReachedOtherSide from "../components/PawnReachedOtherSide";
 import CheckMatePopUp from "../components/CheckMatePopUp";
@@ -41,9 +41,7 @@ export default function ChessBoard() {
 
   const [opponentKilledPieces, setOpponentKilledPieces] = useState([]);
 
-  const [myTurn, setMyTurn] = useState(
-    users[0].username === user.username ? true : false
-  );
+  const [myTurn, setMyTurn] = useState(getTurn(users,user));
 
   const [minutes, setMinutes] = useState(10);
 
@@ -96,10 +94,6 @@ export default function ChessBoard() {
       setData(data);
 
       setMyTurn(data.turn);
-
-      console.log(data.killedPieces);
-
-      console.log(data.opponentKilledPieces);
 
       setKilledPieces(data.killedPieces);
 

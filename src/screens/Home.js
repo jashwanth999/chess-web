@@ -9,32 +9,17 @@ export default function Home() {
 
   const dispatch = useDispatch();
   const [username, setUsername] = useState("");
-  const [roomId, setRoomId] = useState("");
-
-  const [roomUsers, setRoomUsers] = useState([]);
-
-  const users = useSelector((state) => state.users.users);
 
   const joinChessRoom = () => {
-    if (username === " " || roomId === "")
-      return alert("please enter all details");
+    if (username === " ") return alert("please enter all details");
     socket.emit("join_room", {
       username,
-      roomId,
     });
 
-    if (users.length > 1) return alert("room is full");
+    dispatch(addUser({ username }));
 
-    dispatch(addUser({ username, roomId }));
-
-    navigate(`/waiting/${roomId}`);
+    navigate(`/waiting`);
   };
-
-  // console.log(roomUsers);
-
-  useEffect(() => {
-    // we need get data from db and check numbers of users present in room
-  }, []);
 
   return (
     <div style={rootDiv}>
@@ -48,13 +33,6 @@ export default function Home() {
           placeholder="Username"
         />
         <br />
-
-        <input
-          style={inputStyle}
-          value={roomId}
-          onChange={(e) => setRoomId(e.target.value)}
-          placeholder="Room Id"
-        />
 
         <button style={joinButtonStyle} onClick={joinChessRoom}>
           {" "}

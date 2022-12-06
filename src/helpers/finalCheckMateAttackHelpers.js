@@ -240,7 +240,7 @@ export const allPiecesOfKingColorAbleToStopCheckMate = (
 
   let kingPosColor = pieces[kingPos].color;
 
-  console.log(kingPos, x, y);
+  
 
   for (let piecePos in pieces) {
     let piecePosX = piecePos.split(":")[0];
@@ -409,7 +409,7 @@ const allDirTraverse = (
           Math.abs(kingNextMovePosX - i) === 1 &&
           Math.abs(j - kingNextMovePosY) === 1)
       ) {
-        console.log(pieces[pos].pieceName, "leftDown");
+        console.log( "leftDown");
         return false;
       }
     }
