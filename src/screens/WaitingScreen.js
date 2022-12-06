@@ -15,11 +15,9 @@ export default function WaitingScreen() {
     socket.on("recieve_room_users", (data) => {
       setData(data);
 
-      // console.log(data);
+      console.log(data);
 
       dispatch(addUsers(data));
-
-     
 
       navigate(`/room/${data[0].roomId}`);
     });
