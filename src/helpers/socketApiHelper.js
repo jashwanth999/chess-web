@@ -7,7 +7,8 @@ export const messageToSocket = (
   myTurn,
   killedPieces,
   opponentKilledPieces,
-  time
+  time,
+  prevMovePos
 ) => {
   socket.emit("send_data", {
     roomid,
@@ -17,6 +18,7 @@ export const messageToSocket = (
     killedPieces: killedPieces,
     opponentKilledPieces: opponentKilledPieces,
     time,
+    prevMovePos,
   });
 };
 
