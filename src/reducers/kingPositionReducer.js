@@ -1,5 +1,5 @@
 const initialState = {
-  kingPos: "7:4",
+  kingPos: "7:3",
   kingPosOp: "7:4",
 };
 export const kingPositionReducer = (state = initialState, action) => {

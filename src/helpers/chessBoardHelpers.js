@@ -151,7 +151,8 @@ export const dropPiece = (
   time,
   setPawnReachedOtherSideData,
   setOpponentCalledForCheck,
-  setCheckMatePopUpData
+  setCheckMatePopUpData,
+  setPrevMovePos
 ) => {
   try {
     const chessboard = chessboardRef.current;
@@ -170,13 +171,15 @@ export const dropPiece = (
 
       // console.log(pos);
 
-      let posOp = (7 - y).toString() + ":" + x.toString();
+      let posOp = (7 - y).toString() + ":" + (7 - x).toString();
 
       let grabpos =
         grabPosition[0].toString() + ":" + grabPosition[1].toString();
 
       let grabposOp =
-        (7 - grabPosition[0]).toString() + ":" + grabPosition[1].toString();
+        (7 - grabPosition[0]).toString() +
+        ":" +
+        (7 - grabPosition[1]).toString();
 
       // console.log(grabpos)
 
@@ -273,7 +276,7 @@ export const dropPiece = (
         if (
           callingOpponentForCheckMate(
             7 - Number(kingPosOp.split(":")[0]),
-            Number(kingPosOp.split(":")[1]),
+            7 - Number(kingPosOp.split(":")[1]),
             y,
             x,
             pieces[pos].pieceName,
@@ -287,7 +290,7 @@ export const dropPiece = (
 
           let checkMateCount = isValidMoveForCheckMate(
             7 - Number(kingPos.split(":")[0]),
-            Number(kingPos.split(":")[1]),
+            7 - Number(kingPos.split(":")[1]),
             pieces
           );
 
@@ -297,7 +300,7 @@ export const dropPiece = (
             if (
               !kingAbleToMoveAfterCheckMate(
                 7 - Number(kingPosOp.split(":")[0]),
-                Number(kingPosOp.split(":")[1]),
+                7 - Number(kingPosOp.split(":")[1]),
                 pieces
               )
             ) {
@@ -313,13 +316,13 @@ export const dropPiece = (
             !checkMateStopFromOTherPiece(
               pieces,
               7 - Number(kingPosOp.split(":")[0]),
-              Number(kingPosOp.split(":")[1]),
+              7 - Number(kingPosOp.split(":")[1]),
               y,
               x
             ) &&
             !kingAbleToMoveAfterCheckMate(
               7 - Number(kingPosOp.split(":")[0]),
-              Number(kingPosOp.split(":")[1]),
+              7 - Number(kingPosOp.split(":")[1]),
               pieces
             )
           ) {
@@ -365,6 +368,16 @@ export const dropPiece = (
           });
         }
 
+        setPrevMovePos({
+          grabpos: grabpos,
+          pos: pos,
+        });
+
+        let prevMovePos = {
+          grabpos: grabposOp,
+          pos: posOp,
+        };
+
         messageToSocket(
           roomid,
           pieces,
@@ -372,7 +385,8 @@ export const dropPiece = (
           myTurn,
           killedPiecesData ? [...killedPieces, killedPiecesData] : killedPieces,
           opponentKilledPieces,
-          time
+          time,
+          prevMovePos
         );
       } else if (
         users[1].username === user.username &&
@@ -456,7 +470,7 @@ export const dropPiece = (
         if (
           callingOpponentForCheckMate(
             7 - Number(kingPosOp.split(":")[0]),
-            Number(kingPosOp.split(":")[1]),
+            7 - Number(kingPosOp.split(":")[1]),
             y,
             x,
             piecesOpponent[pos].pieceName,
@@ -480,7 +494,7 @@ export const dropPiece = (
             if (
               !kingAbleToMoveAfterCheckMate(
                 7 - Number(kingPosOp.split(":")[0]),
-                Number(kingPosOp.split(":")[1]),
+                7 - Number(kingPosOp.split(":")[1]),
                 piecesOpponent
               )
             ) {
@@ -496,13 +510,13 @@ export const dropPiece = (
             !checkMateStopFromOTherPiece(
               piecesOpponent,
               7 - Number(kingPosOp.split(":")[0]),
-              Number(kingPosOp.split(":")[1]),
+              7 - Number(kingPosOp.split(":")[1]),
               y,
               x
             ) &&
             !kingAbleToMoveAfterCheckMate(
               7 - Number(kingPosOp.split(":")[0]),
-              Number(kingPosOp.split(":")[1]),
+              7 - Number(kingPosOp.split(":")[1]),
               piecesOpponent
             )
           ) {
@@ -554,6 +568,16 @@ export const dropPiece = (
             opponent: true,
           });
         }
+
+        setPrevMovePos({
+          grabpos: grabpos,
+          pos: pos,
+        });
+
+        let prevMovePos = {
+          grabpos: grabposOp,
+          pos: posOp,
+        };
         messageToSocket(
           roomid,
           pieces,
@@ -563,7 +587,8 @@ export const dropPiece = (
           killedPiecesOpponentData
             ? [...opponentKilledPieces, killedPiecesOpponentData]
             : opponentKilledPieces,
-          time
+          time,
+          prevMovePos
         );
       }
 
@@ -604,8 +629,6 @@ export const getTurn = (users, user) => {
   if (users[1].username === user.username) {
     if (users[1].color === "w") return true;
   }
-
-  
 
   return false;
 };

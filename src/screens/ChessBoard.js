@@ -9,7 +9,12 @@ import {
 } from "../api/action";
 import ChatBox from "../components/ChatBox";
 import { gridConstants, h, v } from "../helpers/imageHelpers";
-import { dropPiece, getTurn, grabPiece, movePiece } from "../helpers/chessBoardHelpers";
+import {
+  dropPiece,
+  getTurn,
+  grabPiece,
+  movePiece,
+} from "../helpers/chessBoardHelpers";
 import KilledPieceComponent from "../components/KilledPieceComponent";
 import PawnReachedOtherSide from "../components/PawnReachedOtherSide";
 import CheckMatePopUp from "../components/CheckMatePopUp";
@@ -41,7 +46,7 @@ export default function ChessBoard() {
 
   const [opponentKilledPieces, setOpponentKilledPieces] = useState([]);
 
-  const [myTurn, setMyTurn] = useState(getTurn(users,user));
+  const [myTurn, setMyTurn] = useState(getTurn(users, user));
 
   const [minutes, setMinutes] = useState(10);
 
@@ -56,6 +61,10 @@ export default function ChessBoard() {
   const [opponetCalledForCheck, setOpponentCalledForCheck] = useState(false);
 
   const [checkMatePopupData, setCheckMatePopUpData] = useState();
+
+  const [prevMovePosOp, setPrevMovePosOp] = useState();
+
+  const [prevMovePos, setPrevMovePos] = useState();
 
   const chessboardRef = useRef(null);
 
@@ -80,8 +89,15 @@ export default function ChessBoard() {
               : piecesOpponent[cord]?.image
           }
           number={number}
-          row={i}
-          col={j}
+          pos={i.toString() + ":" + j.toString()}
+          prevGrabPos={
+         prevMovePos?.grabpos
+            
+          }
+          currentPos={
+            prevMovePos?.pos
+          
+          }
         />
       );
     }
@@ -99,12 +115,9 @@ export default function ChessBoard() {
 
       setOpponentKilledPieces(data.opponentKilledPieces);
 
-      // timer = data.time.timer;
-
-      // opponentTimer = data.time.opponentTimer;
-      // console.log(data.turn);
+      setPrevMovePos(data.prevMovePos);
     });
-  }, [dispatch, pieces, data, piecesOpponent, users, user]);
+  }, [dispatch]);
 
   useEffect(() => {
     socket.on("recieve_check_mate_data", (data) => {
@@ -229,7 +242,8 @@ export default function ChessBoard() {
               time,
               setPawnReachedOtherSideData,
               setOpponentCalledForCheck,
-              setCheckMatePopUpData
+              setCheckMatePopUpData,
+              setPrevMovePos
             )
           }
           // onTouchStart={(e) => grabPiece(e)}
