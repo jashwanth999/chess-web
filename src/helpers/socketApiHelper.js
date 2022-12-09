@@ -8,7 +8,8 @@ export const messageToSocket = (
   killedPieces,
   opponentKilledPieces,
   time,
-  prevMovePos
+  prevMovePos,
+  allPos
 ) => {
   socket.emit("send_data", {
     roomid,
@@ -19,6 +20,7 @@ export const messageToSocket = (
     opponentKilledPieces: opponentKilledPieces,
     time,
     prevMovePos,
+    allPos,
   });
 };
 

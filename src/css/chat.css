@@ -1,3 +1,7 @@
 .messagesDiv::-webkit-scrollbar {
   display: none;
 }
+
+.prevpos::-webkit-scrollbar {
+  display: none;
+}

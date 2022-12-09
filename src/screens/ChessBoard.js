@@ -18,6 +18,7 @@ import {
 import KilledPieceComponent from "../components/KilledPieceComponent";
 import PawnReachedOtherSide from "../components/PawnReachedOtherSide";
 import CheckMatePopUp from "../components/CheckMatePopUp";
+import DetailsComponent from "../components/DetailsComponent";
 
 export default function ChessBoard() {
   const { roomid } = useParams();
@@ -62,12 +63,13 @@ export default function ChessBoard() {
 
   const [checkMatePopupData, setCheckMatePopUpData] = useState();
 
-  const [prevMovePosOp, setPrevMovePosOp] = useState();
-
   const [prevMovePos, setPrevMovePos] = useState();
+
+  const [allPos, setAllPos] = useState([]);
 
   const chessboardRef = useRef(null);
 
+  console.log(allPos);
   const audioRef = useRef();
   let board = [];
 
@@ -90,14 +92,8 @@ export default function ChessBoard() {
           }
           number={number}
           pos={i.toString() + ":" + j.toString()}
-          prevGrabPos={
-         prevMovePos?.grabpos
-            
-          }
-          currentPos={
-            prevMovePos?.pos
-          
-          }
+          prevGrabPos={prevMovePos?.grabpos}
+          currentPos={prevMovePos?.pos}
         />
       );
     }
@@ -115,7 +111,19 @@ export default function ChessBoard() {
 
       setOpponentKilledPieces(data.opponentKilledPieces);
 
+      // console.log(data.time)
+
       setPrevMovePos(data.prevMovePos);
+
+      setMinutes(data.time.minutes);
+
+      setSeconds(data.time.seconds);
+
+      setOpponentMinutes(data.time.opponentMinutes);
+
+      setOpponentSeconds(data.time.opponentSeconds);
+
+      setAllPos(data.allPos);
     });
   }, [dispatch]);
 
@@ -142,6 +150,8 @@ export default function ChessBoard() {
   //       }
   //     }, 1000);
 
+  //     console.log(timer)
+
   //     return () => clearInterval(timer);
   //   } else {
   //     opponentTimer = setInterval(() => {
@@ -157,14 +167,14 @@ export default function ChessBoard() {
   //   }
   // });
 
-  // useEffect(() => {
-
-  // });
-
   let time = {
-    timer: timer,
-    opponentTimer: opponentTimer,
+    minutes: minutes,
+    seconds: seconds,
+    opponentMinutes: opponentMinutes,
+    opponentSeconds: opponentSeconds,
   };
+
+
 
   return (
     <div style={rootDiv}>
@@ -243,7 +253,9 @@ export default function ChessBoard() {
               setPawnReachedOtherSideData,
               setOpponentCalledForCheck,
               setCheckMatePopUpData,
-              setPrevMovePos
+              setPrevMovePos,
+              setAllPos,
+              allPos
             )
           }
           // onTouchStart={(e) => grabPiece(e)}
@@ -290,7 +302,12 @@ export default function ChessBoard() {
         )}
       </div>
 
-      <ChatBox roomId={roomid} username={user.username} socket={socket} />
+      <DetailsComponent
+        roomid={roomid}
+        user={user}
+        socket={socket}
+        allPos={allPos}
+      />
     </div>
   );
 }
@@ -301,7 +318,7 @@ const rootDiv = {
   minHeight: "100vh",
   alignItems: "center",
   flexDirection: "row",
-  backgroundColor: "#212F3D",
+  backgroundColor: "rgba(46, 46, 46,0.9)",
   flexWrap: "wrap",
 };
 const chessBoardDiv = {
