@@ -6,6 +6,7 @@ import {
 } from "./finalCheckMateAttackHelpers";
 import { gridConstants } from "./imageHelpers";
 import { checkMateMessageToSocket, messageToSocket } from "./socketApiHelper";
+import { socket } from "./socketHelper";
 import { isValidMoveForCheckMate, pieceValidMethodMap } from "./validHelpers";
 
 export const grabPiece = (
@@ -152,7 +153,11 @@ export const dropPiece = (
   setPawnReachedOtherSideData,
   setOpponentCalledForCheck,
   setCheckMatePopUpData,
-  setPrevMovePos
+  setPrevMovePos,
+  isValid,
+  isValidMoveCheckMate,
+  isOurMoveCalledCheckForOpponent,
+  checkMateCount
 ) => {
   try {
     const chessboard = chessboardRef.current;
@@ -181,20 +186,19 @@ export const dropPiece = (
         ":" +
         (7 - grabPosition[1]).toString();
 
-      // console.log(grabpos)
-
-      if (
-        !pieceValidMethodMap(
-          grabPosition[0],
-          grabPosition[1],
-          y,
-          x,
+      socket.emit("check_valid_move", {
+        prevX: grabPosition[0],
+        prey: grabPosition[1],
+        x: y,
+        y: x,
+        pieceName:
           users[0]?.username === user.username
             ? pieces[grabpos]?.pieceName
             : piecesOpponent[grabpos]?.pieceName,
-          users[0]?.username === user.username ? pieces : piecesOpponent
-        )
-      ) {
+        pieces: users[0]?.username === user.username ? pieces : piecesOpponent,
+      });
+
+      if (!isValid) {
         activePiece.style.position = "relative";
         activePiece.style.removeProperty("top");
         activePiece.style.removeProperty("left");
@@ -239,17 +243,16 @@ export const dropPiece = (
         piecesOpponent[posOp] = piecesDataOp;
         piecesOpponent[grabposOp] = "";
 
-        if (
-          isValidMoveForCheckMate(
-            kingFlag
-              ? Number(pos.split(":")[0])
-              : Number(kingPos.split(":")[0]),
-            kingFlag
-              ? Number(pos.split(":")[1])
-              : Number(kingPos.split(":")[1]),
-            pieces
-          )
-        ) {
+        socket.emit("check_for_valid_move_check", {
+          kingPos: kingFlag
+            ? Number(pos.split(":")[0])
+            : Number(kingPos.split(":")[0]),
+          kingPosOp: kingFlag
+            ? Number(pos.split(":")[1])
+            : Number(kingPos.split(":")[1]),
+          pieces: pieces,
+        });
+        if (isValidMoveCheckMate) {
           pieces[grabpos] = piecesData;
 
           pieces[pos] = piecesPosData;
@@ -271,7 +274,14 @@ export const dropPiece = (
           return;
         }
 
-        //after success ,  checking our move for checkmate
+        socket.emit("check_our_move_is_called_for_check_for_opponent", {
+          kingPosX: 7 - Number(kingPosOp.split(":")[0]),
+          kingPosY: 7 - Number(kingPosOp.split(":")[1]),
+          x: y,
+          y: x,
+          piecesName: pieces[pos].pieceName,
+          pieces: pieces,
+        });
 
         if (
           callingOpponentForCheckMate(
@@ -286,13 +296,15 @@ export const dropPiece = (
         ) {
           console.log("check called by opponent");
 
-          setOpponentCalledForCheck(true);
+          // setOpponentCalledForCheck(true);
 
-          let checkMateCount = isValidMoveForCheckMate(
-            7 - Number(kingPos.split(":")[0]),
-            7 - Number(kingPos.split(":")[1]),
-            pieces
-          );
+          socket.emit("check_for_valid_move_check", {
+            kingPos: 7 - Number(kingPos.split(":")[0]),
+            kingPosOp: 7 - Number(kingPos.split(":")[1]),
+            pieces: pieces,
+          });
+
+   
 
           console.log("checkMateCount", checkMateCount);
 
@@ -334,265 +346,32 @@ export const dropPiece = (
 
             checkMateMessageToSocket(roomid, users[0].username, "b");
           }
-        } else setOpponentCalledForCheck(false);
-
-        activePiece.style.position = "relative";
-        activePiece.style.removeProperty("top");
-        activePiece.style.removeProperty("left");
-
-        if (grabpos === pos) {
-          clearInterval(opponentTimer);
-          setMyTurn(true);
-        } else {
-          setMyTurn(false);
         }
-
-        if (killedPiecesData) {
-          setKilledPieces([...killedPieces, killedPiecesData]);
-        }
-        audioRef.current.play();
-
-        if (y === 0 && pieces[pos] && pieces[pos].pieceName === "p") {
-          setPawnReachedOtherSideData({
-            open: true,
-            pieces,
-            piecesOpponent,
-            pos: pos,
-            posOp: posOp,
-            roomid,
-            myTurn,
-            killedPieces,
-            opponentKilledPieces,
-            time,
-            opponent: false,
-          });
-        }
-
-        setPrevMovePos({
-          grabpos: grabpos,
-          pos: pos,
-        });
-
-        let prevMovePos = {
-          grabpos: grabposOp,
-          pos: posOp,
-        };
-
-        messageToSocket(
-          roomid,
-          pieces,
-          piecesOpponent,
-          myTurn,
-          killedPiecesData ? [...killedPieces, killedPiecesData] : killedPieces,
-          opponentKilledPieces,
-          time,
-          prevMovePos
-        );
-      } else if (
-        users[1].username === user.username &&
-        piecesOpponent[grabpos]
-      ) {
-        let piecesData = piecesOpponent[grabpos];
-
-        let piecesDataOp = pieces[grabposOp];
-
-        let piecesPosData = piecesOpponent[pos];
-
-        let piecesPosDataOp = pieces[posOp];
-
-        if (
-          piecesOpponent[pos] &&
-          (piecesOpponent[pos].color === piecesOpponent[grabpos].color ||
-            piecesOpponent[pos].pieceName === "k")
-        ) {
-          activePiece.style.position = "relative";
-          activePiece.style.removeProperty("top");
-          activePiece.style.removeProperty("left");
-
-          setActivePiece(null);
-
-          return;
-        }
-
-        let kingFlag = false;
-
-        if (piecesOpponent[grabpos].pieceName === "k") {
-          kingFlag = true;
-          dispatch(changeOpponentKingPosition(pos));
-        }
-
-        let killedPiecesOpponentData;
-
-        if (piecesOpponent[pos]) {
-          killedPiecesOpponentData = piecesOpponent[pos];
-        }
-
-        piecesOpponent[grabpos] = "";
-        piecesOpponent[pos] = piecesData;
-
-        pieces[posOp] = piecesDataOp;
-        pieces[grabposOp] = "";
-
-        if (
-          isValidMoveForCheckMate(
-            kingFlag
-              ? Number(pos.split(":")[0])
-              : Number(kingPosOp.split(":")[0]),
-            kingFlag
-              ? Number(pos.split(":")[1])
-              : Number(kingPosOp.split(":")[1]),
-            piecesOpponent
-          )
-        ) {
-          piecesOpponent[grabpos] = piecesData;
-
-          piecesOpponent[pos] = piecesPosData;
-
-          pieces[grabposOp] = piecesDataOp;
-
-          pieces[posOp] = piecesPosDataOp;
-
-          if (kingFlag) {
-            dispatch(changeOpponentKingPosition(grabpos));
-          }
-
-          activePiece.style.position = "relative";
-          activePiece.style.removeProperty("top");
-          activePiece.style.removeProperty("left");
-
-          setActivePiece(null);
-
-          return;
-        }
-
-        //after success checking our move for checkmate
-
-        if (
-          callingOpponentForCheckMate(
-            7 - Number(kingPosOp.split(":")[0]),
-            7 - Number(kingPosOp.split(":")[1]),
-            y,
-            x,
-            piecesOpponent[pos].pieceName,
-            piecesOpponent
-          ) &&
-          piecesOpponent[pos].pieceName !== "k"
-        ) {
-          console.log("check called by opponent");
-
-          setOpponentCalledForCheck(true);
-
-          let checkMateCount = isValidMoveForCheckMate(
-            7 - Number(kingPos.split(":")[0]),
-            Number(kingPos.split(":")[1]),
-            piecesOpponent
-          );
-
-          console.log("checkMateCount", checkMateCount);
-
-          if (checkMateCount > 1) {
-            if (
-              !kingAbleToMoveAfterCheckMate(
-                7 - Number(kingPosOp.split(":")[0]),
-                7 - Number(kingPosOp.split(":")[1]),
-                piecesOpponent
-              )
-            ) {
-              setCheckMatePopUpData({
-                roomId: roomid,
-                winnerName: users[1].username,
-                color: "w",
-              });
-
-              checkMateMessageToSocket(roomid, users[1].username, "w");
-            }
-          } else if (
-            !checkMateStopFromOTherPiece(
-              piecesOpponent,
-              7 - Number(kingPosOp.split(":")[0]),
-              7 - Number(kingPosOp.split(":")[1]),
-              y,
-              x
-            ) &&
-            !kingAbleToMoveAfterCheckMate(
-              7 - Number(kingPosOp.split(":")[0]),
-              7 - Number(kingPosOp.split(":")[1]),
-              piecesOpponent
-            )
-          ) {
-            setCheckMatePopUpData({
-              roomId: roomid,
-              winnerName: users[1].username,
-              color: "w",
-            });
-
-            checkMateMessageToSocket(roomid, users[1].username, "w");
-          }
-        } else setOpponentCalledForCheck(false);
-
-        activePiece.style.position = "relative";
-        activePiece.style.removeProperty("top");
-        activePiece.style.removeProperty("left");
-
-        if (grabpos === pos) {
-          clearInterval(opponentTimer);
-          setMyTurn(true);
-        } else {
-          setMyTurn(false);
-        }
-        if (killedPiecesOpponentData) {
-          setOpponentKilledPieces([
-            ...opponentKilledPieces,
-            killedPiecesOpponentData,
-          ]);
-        }
-
-        audioRef.current.play();
-
-        if (
-          y === 0 &&
-          piecesOpponent[pos] &&
-          piecesOpponent[pos].pieceName === "p"
-        ) {
-          setPawnReachedOtherSideData({
-            open: true,
-            pieces: pieces,
-            piecesOpponent: piecesOpponent,
-            pos: posOp,
-            posOp: pos,
-            roomid,
-            myTurn,
-            killedPieces,
-            opponentKilledPieces,
-            time,
-            opponent: true,
-          });
-        }
-
-        setPrevMovePos({
-          grabpos: grabpos,
-          pos: pos,
-        });
-
-        let prevMovePos = {
-          grabpos: grabposOp,
-          pos: posOp,
-        };
-        messageToSocket(
-          roomid,
-          pieces,
-          piecesOpponent,
-          myTurn,
-          killedPieces,
-          killedPiecesOpponentData
-            ? [...opponentKilledPieces, killedPiecesOpponentData]
-            : opponentKilledPieces,
-          time,
-          prevMovePos
-        );
       }
 
-      setActivePiece(null);
+      // console.log(grabpos)
+
+      // messageToSocket(
+      //   posOp,
+      //   grabposOp,
+      //   users,
+      //   user,
+      //   pieces,
+      //   piecesOpponent,
+      //   kingPos,
+      //   kingPosOp,
+
+      //   myTurn,
+      //   killedPieces,
+      //   opponentKilledPieces,
+      //   roomid
+      // );
+
+      // audioRef.current.play();
+      // activePiece.style.position = "relative";
+      // activePiece.style.removeProperty("top");
+      // activePiece.style.removeProperty("left");
+      // setActivePiece(null);
     }
   } catch (e) {
     console.log("Error while drop piece : ", e.message);
