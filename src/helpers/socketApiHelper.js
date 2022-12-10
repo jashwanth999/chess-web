@@ -1,4 +1,4 @@
-import { socket } from "./socketHelper";
+import { socket } from "./apiHelpers";
 
 export const messageToSocket = (
   roomid,

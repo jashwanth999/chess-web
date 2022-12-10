@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import Box from "../components/Box";
-import { socket } from "../helpers/socketHelper";
+import { socket } from "../helpers/apiHelpers";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -10,6 +10,7 @@ import {
 import ChatBox from "../components/ChatBox";
 import { gridConstants, h, v } from "../helpers/imageHelpers";
 import {
+  changeBackAndForWardPosition,
   dropPiece,
   getTurn,
   grabPiece,
@@ -67,10 +68,13 @@ export default function ChessBoard() {
 
   const [allPos, setAllPos] = useState([]);
 
+  const [allPosLength, setAllPosLength] = useState(0);
+
   const chessboardRef = useRef(null);
 
-  console.log(allPos);
   const audioRef = useRef();
+
+  console.log(allPos, allPosLength);
   let board = [];
 
   let timer;
@@ -123,7 +127,9 @@ export default function ChessBoard() {
 
       setOpponentSeconds(data.time.opponentSeconds);
 
-      setAllPos(data.allPos);
+      setAllPos((allPos) => [...allPos, data.allPos]);
+
+      setAllPosLength((prev) => prev + 1);
     });
   }, [dispatch]);
 
@@ -174,7 +180,59 @@ export default function ChessBoard() {
     opponentSeconds: opponentSeconds,
   };
 
+  const backWard = () => {
+    if (allPosLength >= 1) {
+      let pos = allPos[allPosLength - 1][1];
 
+      let grabpos = allPos[allPosLength - 1][0];
+
+      console.log(pos, grabpos);
+
+      if (users[0].username === user.username) {
+        pieces[grabpos] = pieces[pos];
+        pieces[pos] = "";
+      } else {
+        piecesOpponent[grabpos] = piecesOpponent[pos];
+        piecesOpponent[pos] = "";
+      }
+
+      setPrevMovePos({
+        grabpos: grabpos,
+        pos: pos,
+      });
+
+      setAllPosLength(allPosLength - 1);
+
+      audioRef.current.play();
+    }
+  };
+
+  const forWard = () => {
+    if (allPosLength < allPos.length) {
+      let pos = allPos[allPosLength][1];
+
+      let grabpos = allPos[allPosLength][0];
+
+      console.log(pos, grabpos);
+
+      if (users[0].username === user.username) {
+        pieces[pos] = pieces[grabpos];
+        pieces[grabpos] = "";
+      } else {
+        piecesOpponent[pos] = piecesOpponent[grabpos];
+
+        piecesOpponent[grabpos] = "";
+      }
+
+      setPrevMovePos({
+        grabpos: grabpos,
+        pos: pos,
+      });
+
+      setAllPosLength(allPosLength + 1);
+      audioRef.current.play();
+    }
+  };
 
   return (
     <div style={rootDiv}>
@@ -222,7 +280,9 @@ export default function ChessBoard() {
               setActivePiece,
               gridConstants,
               myTurn,
-              checkMatePopupData
+              checkMatePopupData,
+              allPos,
+              allPosLength
             )
           }
           onMouseUp={(e) =>
@@ -255,7 +315,9 @@ export default function ChessBoard() {
               setCheckMatePopUpData,
               setPrevMovePos,
               setAllPos,
-              allPos
+              allPos,
+              setAllPosLength,
+              allPosLength
             )
           }
           // onTouchStart={(e) => grabPiece(e)}
@@ -307,6 +369,8 @@ export default function ChessBoard() {
         user={user}
         socket={socket}
         allPos={allPos}
+        backWard={backWard}
+        forWard={forWard}
       />
     </div>
   );

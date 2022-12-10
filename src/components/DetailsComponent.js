@@ -14,24 +14,21 @@ import {
 
 import "../css/chat.css";
 
-export default function DetailsComponent({ roomid, user, socket, allPos }) {
-  // console.log(allPos)
-
-  // let newArr = [];
-
-  // while (allPos.length) newArr.push(allPos.splice(0, 2));
-  // allPos = newArr;
-
-  // console.log(allPos,newArr)
-
-  //   console.log(twoDPos);
+export default function DetailsComponent({
+  roomid,
+  user,
+  socket,
+  allPos,
+  backWard,
+  forWard,
+}) {
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
       <div
         className="prevpos"
         style={{
           width: gridConstants.gridSize,
-          height:gridConstants.gridSize/9,
+          height: gridConstants.gridSize / 9,
           backgroundColor: "rgb(46, 46, 46)",
           marginLeft: 10,
           marginBottom: 2,
@@ -44,6 +41,7 @@ export default function DetailsComponent({ roomid, user, socket, allPos }) {
         {allPos.map((pos, index) => {
           return (
             <h4
+             key={index}
               style={{
                 color: "white",
                 margin: 2,
@@ -60,7 +58,7 @@ export default function DetailsComponent({ roomid, user, socket, allPos }) {
                   paddingLeft: 2,
                 }}
               >
-                {String.fromCharCode(97 + Number(pos.split(":")[1]))}
+                {String.fromCharCode(97 + Number(pos[1].split(":")[1]))}
               </span>
               <span
                 style={{
@@ -70,7 +68,7 @@ export default function DetailsComponent({ roomid, user, socket, allPos }) {
                   paddingRight: 2,
                 }}
               >
-                {pos.split(":")[0]}
+                {pos[1].split(":")[0]}
               </span>
             </h4>
           );
@@ -82,7 +80,7 @@ export default function DetailsComponent({ roomid, user, socket, allPos }) {
       <div
         style={{
           width: gridConstants.gridSize,
-          height:gridConstants.gridSize/9,
+          height: gridConstants.gridSize / 9,
           backgroundColor: "rgb(46, 46, 46)",
           marginLeft: 10,
           marginTop: 2,
@@ -95,13 +93,13 @@ export default function DetailsComponent({ roomid, user, socket, allPos }) {
         <IconButton style={{ color: "lightgray" }}>
           <FirstPage style={icons} />
         </IconButton>
-        <IconButton style={{ color: "lightgray" }}>
+        <IconButton onClick={backWard} style={{ color: "lightgray" }}>
           <ChevronLeft style={icons} />
         </IconButton>
         <IconButton style={{ color: "lightgray" }}>
           <PlayArrow style={icons} />
         </IconButton>
-        <IconButton style={{ color: "lightgray" }}>
+        <IconButton onClick={forWard} style={{ color: "lightgray" }}>
           <ChevronRight style={icons} />
         </IconButton>
         <IconButton style={{ color: "lightgray" }}>

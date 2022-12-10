@@ -19,7 +19,9 @@ export const grabPiece = (
   setActivePiece,
   gridConstants,
   myTurn,
-  checkMatePopupData
+  checkMatePopupData,
+  allPos,
+  allPosLength
 ) => {
   if (myTurn && !checkMatePopupData) {
     try {
@@ -154,7 +156,9 @@ export const dropPiece = (
   setCheckMatePopUpData,
   setPrevMovePos,
   setAllPos,
-  allPos
+  allPos,
+  setAllPosLength,
+  allPosLength
 ) => {
   try {
     const chessboard = chessboardRef.current;
@@ -195,7 +199,8 @@ export const dropPiece = (
             ? pieces[grabpos]?.pieceName
             : piecesOpponent[grabpos]?.pieceName,
           users[0]?.username === user.username ? pieces : piecesOpponent
-        )
+        ) ||
+        allPos.length !== allPosLength
       ) {
         activePiece.style.position = "relative";
         activePiece.style.removeProperty("top");
@@ -380,7 +385,9 @@ export const dropPiece = (
           pos: posOp,
         };
 
-        setAllPos([...allPos, pos]);
+        setAllPos([...allPos, [grabpos, pos]]);
+
+        setAllPosLength(allPos.length + 1);
 
         messageToSocket(
           roomid,
@@ -391,7 +398,7 @@ export const dropPiece = (
           opponentKilledPieces,
           time,
           prevMovePos,
-          [...allPos, posOp]
+          [grabposOp, posOp]
         );
       } else if (
         users[1].username === user.username &&
@@ -584,7 +591,9 @@ export const dropPiece = (
           pos: posOp,
         };
 
-        setAllPos([...allPos, pos]);
+        setAllPos([...allPos, [grabpos, pos]]);
+
+        setAllPosLength(allPos.length + 1);
         messageToSocket(
           roomid,
           pieces,
@@ -596,7 +605,7 @@ export const dropPiece = (
             : opponentKilledPieces,
           time,
           prevMovePos,
-          [...allPos, posOp]
+          [grabposOp, posOp]
         );
       }
 
@@ -639,4 +648,10 @@ export const getTurn = (users, user) => {
   }
 
   return false;
+};
+
+export const changeBackAndForWardPosition = (pieces, grabpos, pos) => {
+  pieces[grabpos] = pieces[pos];
+
+  pieces[pos] = "";
 };
