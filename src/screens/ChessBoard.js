@@ -72,9 +72,12 @@ export default function ChessBoard() {
 
   const chessboardRef = useRef(null);
 
+  const [moveTrack, setMoveTrack] = useState({});
+
   const audioRef = useRef();
 
-  console.log(allPos, allPosLength);
+  const scrollRef = useRef();
+
   let board = [];
 
   let timer;
@@ -98,6 +101,7 @@ export default function ChessBoard() {
           pos={i.toString() + ":" + j.toString()}
           prevGrabPos={prevMovePos?.grabpos}
           currentPos={prevMovePos?.pos}
+          moveTrack={moveTrack}
         />
       );
     }
@@ -234,6 +238,7 @@ export default function ChessBoard() {
     }
   };
 
+
   return (
     <div style={rootDiv}>
       <div>
@@ -281,8 +286,7 @@ export default function ChessBoard() {
               gridConstants,
               myTurn,
               checkMatePopupData,
-              allPos,
-              allPosLength
+              setMoveTrack
             )
           }
           onMouseUp={(e) =>
@@ -317,7 +321,8 @@ export default function ChessBoard() {
               setAllPos,
               allPos,
               setAllPosLength,
-              allPosLength
+              allPosLength,
+              setMoveTrack
             )
           }
           // onTouchStart={(e) => grabPiece(e)}
@@ -371,6 +376,7 @@ export default function ChessBoard() {
         allPos={allPos}
         backWard={backWard}
         forWard={forWard}
+        scrollRef={scrollRef}
       />
     </div>
   );

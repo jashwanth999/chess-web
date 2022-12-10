@@ -21,6 +21,7 @@ export default function DetailsComponent({
   allPos,
   backWard,
   forWard,
+  scrollRef,
 }) {
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
@@ -41,7 +42,8 @@ export default function DetailsComponent({
         {allPos.map((pos, index) => {
           return (
             <h4
-             key={index}
+              key={index}
+              ref={scrollRef}
               style={{
                 color: "white",
                 margin: 2,
