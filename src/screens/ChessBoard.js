@@ -1,16 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
 import Box from "../components/Box";
-import { socket } from "../helpers/apiHelpers";
+import { socket, url } from "../helpers/apiHelpers";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  addUser,
+  addUsers,
   changeOpponentPiecePositionAction,
   changePiecePositionAction,
 } from "../api/action";
-import ChatBox from "../components/ChatBox";
 import { gridConstants, h, v } from "../helpers/imageHelpers";
 import {
-  changeBackAndForWardPosition,
   dropPiece,
   getTurn,
   grabPiece,
@@ -20,6 +20,7 @@ import KilledPieceComponent from "../components/KilledPieceComponent";
 import PawnReachedOtherSide from "../components/PawnReachedOtherSide";
 import CheckMatePopUp from "../components/CheckMatePopUp";
 import DetailsComponent from "../components/DetailsComponent";
+import axios from "axios";
 
 export default function ChessBoard() {
   const { roomid } = useParams();
@@ -41,8 +42,6 @@ export default function ChessBoard() {
   const dispatch = useDispatch();
   const [activePiece, setActivePiece] = useState(null);
   const [grabPosition, setGrabPosition] = useState([-1, -1]);
-
-  const [data, setData] = useState({});
 
   const [killedPieces, setKilledPieces] = useState([]);
 
@@ -67,6 +66,8 @@ export default function ChessBoard() {
   const [prevMovePos, setPrevMovePos] = useState();
 
   const [allPos, setAllPos] = useState([]);
+
+  const [allPosOp, setAllPosOp] = useState([]);
 
   const [allPosLength, setAllPosLength] = useState(0);
 
@@ -93,7 +94,7 @@ export default function ChessBoard() {
       board.push(
         <Box
           image={
-            users[0]?.username === user.username
+            users[0]?.username === user?.username
               ? pieces[cord]?.image
               : piecesOpponent[cord]?.image
           }
@@ -111,7 +112,6 @@ export default function ChessBoard() {
     socket.on("recieve_room_data", (data) => {
       dispatch(changePiecePositionAction(data.pieces));
       dispatch(changeOpponentPiecePositionAction(data.piecesOpponent));
-      setData(data);
 
       setMyTurn(data.turn);
 
@@ -131,13 +131,70 @@ export default function ChessBoard() {
 
       setOpponentSeconds(data.time.opponentSeconds);
 
-      setAllPos((allPos) => [...allPos, data.allPos]);
+      setAllPos(data.allPos);
 
-      setAllPosLength((prev) => prev + 1);
+      setAllPosOp(data.allPosOp);
+
+      setAllPosLength(data.allPos.length);
     });
   }, [dispatch]);
 
   useEffect(() => {
+    const fetchRoomData = async () => {
+      const roomResponse = await axios.post(`${url}/get-room-data`, {
+        roomId: roomid,
+      });
+
+      const _id = localStorage.getItem("_id");
+
+      const response = await axios.post(`${url}/get-user`, {
+        _id,
+      });
+
+      const userData = response.data;
+
+      dispatch(addUser(userData.user));
+
+      socket.emit("reconnection", { roomId: roomid });
+
+      const data = roomResponse.data.data;
+
+      dispatch(changePiecePositionAction(data.pieces));
+
+      dispatch(changeOpponentPiecePositionAction(data.piecesOpponent));
+
+      dispatch(addUsers(data.users));
+
+      setMyTurn(data.turn);
+
+      setKilledPieces(data.killedPieces);
+
+      setOpponentKilledPieces(data.opponentKilledPieces);
+
+      setPrevMovePos(data.prevMovePos);
+
+      setMinutes(data.time.minutes);
+
+      setSeconds(data.time.seconds);
+
+      setOpponentMinutes(data.time.opponentMinutes);
+
+      setOpponentSeconds(data.time.opponentSeconds);
+
+      setAllPos(data.allPos);
+
+      setAllPosOp(data.allPosOp);
+
+      setPrevMovePos(data.prevMovePos);
+
+      setAllPosLength(data.allPos.length);
+    };
+
+    fetchRoomData();
+  }, [dispatch, roomid]);
+
+  useEffect(() => {
+    
     socket.on("recieve_check_mate_data", (data) => {
       setCheckMatePopUpData(data);
     });
@@ -183,19 +240,19 @@ export default function ChessBoard() {
     opponentMinutes: opponentMinutes,
     opponentSeconds: opponentSeconds,
   };
-
   const backWard = () => {
     if (allPosLength >= 1) {
-      let pos = allPos[allPosLength - 1][1];
+      let pos, grabpos;
+      if (users[0]?.username === user?.username) {
+        pos = allPos[allPosLength - 1][1];
 
-      let grabpos = allPos[allPosLength - 1][0];
-
-      console.log(pos, grabpos);
-
-      if (users[0].username === user.username) {
+        grabpos = allPos[allPosLength - 1][0];
         pieces[grabpos] = pieces[pos];
         pieces[pos] = "";
       } else {
+        pos = allPosOp[allPosLength - 1][1];
+
+        grabpos = allPosOp[allPosLength - 1][0];
         piecesOpponent[grabpos] = piecesOpponent[pos];
         piecesOpponent[pos] = "";
       }
@@ -213,16 +270,19 @@ export default function ChessBoard() {
 
   const forWard = () => {
     if (allPosLength < allPos.length) {
-      let pos = allPos[allPosLength][1];
+      let pos, grabpos;
 
-      let grabpos = allPos[allPosLength][0];
+      if (users[0]?.username === user?.username) {
+        pos = allPos[allPosLength][1];
 
-      console.log(pos, grabpos);
+        grabpos = allPos[allPosLength][0];
 
-      if (users[0].username === user.username) {
         pieces[pos] = pieces[grabpos];
         pieces[grabpos] = "";
       } else {
+        pos = allPosOp[allPosLength][1];
+
+        grabpos = allPosOp[allPosLength][0];
         piecesOpponent[pos] = piecesOpponent[grabpos];
 
         piecesOpponent[grabpos] = "";
@@ -238,16 +298,15 @@ export default function ChessBoard() {
     }
   };
 
-
   return (
     <div style={rootDiv}>
       <div>
         <div style={topAndBottomDiv}>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <h3 style={{ margin: 1, color: "white" }}>
-              {users[0].username === user.username
-                ? users[1].username
-                : users[0].username}
+              {users[0]?.username === user?.username
+                ? users[1]?.username
+                : users[0]?.username}
             </h3>
             <KilledPieceComponent
               users={users}
@@ -322,7 +381,9 @@ export default function ChessBoard() {
               allPos,
               setAllPosLength,
               allPosLength,
-              setMoveTrack
+              setMoveTrack,
+              allPosOp,
+              setAllPosOp
             )
           }
           // onTouchStart={(e) => grabPiece(e)}
@@ -364,7 +425,7 @@ export default function ChessBoard() {
           <CheckMatePopUp
             checkMatePopupData={checkMatePopupData}
             setCheckMatePopUpData={setCheckMatePopUpData}
-            username={user.username}
+            username={user?.username}
           />
         )}
       </div>
@@ -373,7 +434,7 @@ export default function ChessBoard() {
         roomid={roomid}
         user={user}
         socket={socket}
-        allPos={allPos}
+        allPos={users[0]?.username === user?.username ? allPos : allPosOp}
         backWard={backWard}
         forWard={forWard}
         scrollRef={scrollRef}

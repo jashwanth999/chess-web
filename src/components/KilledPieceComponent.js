@@ -3,7 +3,7 @@ import React from "react";
 export default function KilledPieceComponent(props) {
 
 
-  if (props.user.username === props.users[0].username )
+  if (props.user?.username === props.users[0]?.username )
     return (
       <div style={{ display: "flex" }}>
         {props.killedPieces.map((piece, index) => {

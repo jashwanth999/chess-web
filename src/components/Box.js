@@ -33,10 +33,10 @@ export default function Box(props) {
           props.moveTrack[props.pos] && (
             <div
               style={{
-                height: gridConstants.gridSize / 14,
-                width: gridConstants.gridSize / 14,
-                borderRadius: gridConstants.gridSize / 14,
-                backgroundColor: "grey",
+                height: gridConstants.gridSize / 16,
+                width: gridConstants.gridSize / 16,
+                borderRadius: gridConstants.gridSize / 16,
+                backgroundColor: "rgba(112, 123, 124 ,0.7)",
               }}
             />
           )
@@ -73,10 +73,10 @@ export default function Box(props) {
           props.moveTrack[props.pos] && (
             <div
               style={{
-                height: gridConstants.gridSize / 14,
-                width: gridConstants.gridSize / 14,
-                borderRadius: gridConstants.gridSize / 14,
-                backgroundColor: "grey",
+                height: gridConstants.gridSize / 16,
+                width: gridConstants.gridSize / 16,
+                borderRadius: gridConstants.gridSize / 16,
+                backgroundColor: "rgba(112, 123, 124 ,0.7)",
               }}
             />
           )

@@ -42,12 +42,12 @@ export const grabPiece = (
         let grabpos = grabY.toString() + ":" + grabX.toString();
 
         if (
-          users[0].username === user.username &&
+          users[0]?.username === user?.username &&
           pieces[grabpos]?.color !== "b"
         ) {
           return;
         } else if (
-          users[1].username === user.username &&
+          users[1]?.username === user?.username &&
           piecesOpponent[grabpos]?.color !== "w"
         ) {
           return;
@@ -164,7 +164,9 @@ export const dropPiece = (
   allPos,
   setAllPosLength,
   allPosLength,
-  setMoveTrack
+  setMoveTrack,
+  allPosOp,
+  setAllPosOp
 ) => {
   try {
     const chessboard = chessboardRef.current;
@@ -395,10 +397,13 @@ export const dropPiece = (
 
         setAllPos([...allPos, [grabpos, pos]]);
 
+        // setAllPosOp([...allPosOp, [grabpos, pos]]);
+
         setAllPosLength(allPos.length + 1);
 
         messageToSocket(
           roomid,
+          users,
           pieces,
           piecesOpponent,
           myTurn,
@@ -406,7 +411,8 @@ export const dropPiece = (
           opponentKilledPieces,
           time,
           prevMovePos,
-          [grabposOp, posOp]
+          [...allPos, [grabpos, pos]],
+          [...allPosOp, [grabposOp, posOp]]
         );
       } else if (
         users[1].username === user.username &&
@@ -602,11 +608,14 @@ export const dropPiece = (
           pos: posOp,
         };
 
-        setAllPos([...allPos, [grabpos, pos]]);
+        // setAllPos([...allPos, [grabpos, pos]]);
 
-        setAllPosLength(allPos.length + 1);
+        setAllPosOp([...allPosOp, [grabpos, pos]]);
+
+        setAllPosLength(allPosOp.length + 1);
         messageToSocket(
           roomid,
+          users,
           pieces,
           piecesOpponent,
           myTurn,
@@ -616,7 +625,8 @@ export const dropPiece = (
             : opponentKilledPieces,
           time,
           prevMovePos,
-          [grabposOp, posOp]
+          [...allPos, [grabposOp, posOp]],
+          [...allPosOp, [grabpos, pos]]
         );
       }
 
@@ -652,12 +662,12 @@ export const changePawnRechedOtherSizeData = (
 };
 
 export const getTurn = (users, user) => {
-  if (users[0].username === user.username) {
-    if (users[0].color === "w") return true;
+  if (users[0]?.username === user?.username) {
+    if (users[0]?.color === "w") return true;
   }
 
-  if (users[1].username === user.username) {
-    if (users[1].color === "w") return true;
+  if (users[1]?.username === user?.username) {
+    if (users[1]?.color === "w") return true;
   }
 
   return false;
