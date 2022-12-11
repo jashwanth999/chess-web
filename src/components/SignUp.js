@@ -43,6 +43,7 @@ export default function SignUp(props) {
       const data = response.data;
 
       if (data.status === 200) {
+        localStorage.setItem("_id", data.user._id);
         dispatch(addUser({ username }));
         navigate("/home");
       } else {
