@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import Box from "../components/Box";
-import { socket } from "../helpers/socketHelper";
+import { socket, url } from "../helpers/apiHelpers";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  addUser,
+  addUsers,
   changeOpponentPiecePositionAction,
   changePiecePositionAction,
 } from "../api/action";
-import ChatBox from "../components/ChatBox";
 import { gridConstants, h, v } from "../helpers/imageHelpers";
 import {
   dropPiece,
@@ -18,6 +19,8 @@ import {
 import KilledPieceComponent from "../components/KilledPieceComponent";
 import PawnReachedOtherSide from "../components/PawnReachedOtherSide";
 import CheckMatePopUp from "../components/CheckMatePopUp";
+import DetailsComponent from "../components/DetailsComponent";
+import axios from "axios";
 
 export default function ChessBoard() {
   const { roomid } = useParams();
@@ -40,8 +43,6 @@ export default function ChessBoard() {
   const [activePiece, setActivePiece] = useState(null);
   const [grabPosition, setGrabPosition] = useState([-1, -1]);
 
-  const [data, setData] = useState({});
-
   const [killedPieces, setKilledPieces] = useState([]);
 
   const [opponentKilledPieces, setOpponentKilledPieces] = useState([]);
@@ -62,13 +63,22 @@ export default function ChessBoard() {
 
   const [checkMatePopupData, setCheckMatePopUpData] = useState();
 
-  const [prevMovePosOp, setPrevMovePosOp] = useState();
-
   const [prevMovePos, setPrevMovePos] = useState();
+
+  const [allPos, setAllPos] = useState([]);
+
+  const [allPosOp, setAllPosOp] = useState([]);
+
+  const [allPosLength, setAllPosLength] = useState(0);
 
   const chessboardRef = useRef(null);
 
+  const [moveTrack, setMoveTrack] = useState({});
+
   const audioRef = useRef();
+
+  const scrollRef = useRef();
+
   let board = [];
 
   let timer;
@@ -84,20 +94,15 @@ export default function ChessBoard() {
       board.push(
         <Box
           image={
-            users[0]?.username === user.username
+            users[0]?.username === user?.username
               ? pieces[cord]?.image
               : piecesOpponent[cord]?.image
           }
           number={number}
           pos={i.toString() + ":" + j.toString()}
-          prevGrabPos={
-         prevMovePos?.grabpos
-            
-          }
-          currentPos={
-            prevMovePos?.pos
-          
-          }
+          prevGrabPos={prevMovePos?.grabpos}
+          currentPos={prevMovePos?.pos}
+          moveTrack={moveTrack}
         />
       );
     }
@@ -107,7 +112,58 @@ export default function ChessBoard() {
     socket.on("recieve_room_data", (data) => {
       dispatch(changePiecePositionAction(data.pieces));
       dispatch(changeOpponentPiecePositionAction(data.piecesOpponent));
-      setData(data);
+
+      setMyTurn(data.turn);
+
+      setKilledPieces(data.killedPieces);
+
+      setOpponentKilledPieces(data.opponentKilledPieces);
+
+      // console.log(data.time)
+
+      setPrevMovePos(data.prevMovePos);
+
+      setMinutes(data.time.minutes);
+
+      setSeconds(data.time.seconds);
+
+      setOpponentMinutes(data.time.opponentMinutes);
+
+      setOpponentSeconds(data.time.opponentSeconds);
+
+      setAllPos(data.allPos);
+
+      setAllPosOp(data.allPosOp);
+
+      setAllPosLength(data.allPos.length);
+    });
+  }, [dispatch]);
+
+  useEffect(() => {
+    const fetchRoomData = async () => {
+      const roomResponse = await axios.post(`${url}/get-room-data`, {
+        roomId: roomid,
+      });
+
+      const _id = localStorage.getItem("_id");
+
+      const response = await axios.post(`${url}/get-user`, {
+        _id,
+      });
+
+      const userData = response.data;
+
+      dispatch(addUser(userData.user));
+
+      socket.emit("reconnection", { roomId: roomid });
+
+      const data = roomResponse.data.data;
+
+      dispatch(changePiecePositionAction(data.pieces));
+
+      dispatch(changeOpponentPiecePositionAction(data.piecesOpponent));
+
+      dispatch(addUsers(data.users));
 
       setMyTurn(data.turn);
 
@@ -116,10 +172,29 @@ export default function ChessBoard() {
       setOpponentKilledPieces(data.opponentKilledPieces);
 
       setPrevMovePos(data.prevMovePos);
-    });
-  }, [dispatch]);
+
+      setMinutes(data.time.minutes);
+
+      setSeconds(data.time.seconds);
+
+      setOpponentMinutes(data.time.opponentMinutes);
+
+      setOpponentSeconds(data.time.opponentSeconds);
+
+      setAllPos(data.allPos);
+
+      setAllPosOp(data.allPosOp);
+
+      setPrevMovePos(data.prevMovePos);
+
+      setAllPosLength(data.allPos.length);
+    };
+
+    fetchRoomData();
+  }, [dispatch, roomid]);
 
   useEffect(() => {
+    
     socket.on("recieve_check_mate_data", (data) => {
       setCheckMatePopUpData(data);
     });
@@ -142,6 +217,8 @@ export default function ChessBoard() {
   //       }
   //     }, 1000);
 
+  //     console.log(timer)
+
   //     return () => clearInterval(timer);
   //   } else {
   //     opponentTimer = setInterval(() => {
@@ -157,13 +234,68 @@ export default function ChessBoard() {
   //   }
   // });
 
-  // useEffect(() => {
-
-  // });
-
   let time = {
-    timer: timer,
-    opponentTimer: opponentTimer,
+    minutes: minutes,
+    seconds: seconds,
+    opponentMinutes: opponentMinutes,
+    opponentSeconds: opponentSeconds,
+  };
+  const backWard = () => {
+    if (allPosLength >= 1) {
+      let pos, grabpos;
+      if (users[0]?.username === user?.username) {
+        pos = allPos[allPosLength - 1][1];
+
+        grabpos = allPos[allPosLength - 1][0];
+        pieces[grabpos] = pieces[pos];
+        pieces[pos] = "";
+      } else {
+        pos = allPosOp[allPosLength - 1][1];
+
+        grabpos = allPosOp[allPosLength - 1][0];
+        piecesOpponent[grabpos] = piecesOpponent[pos];
+        piecesOpponent[pos] = "";
+      }
+
+      setPrevMovePos({
+        grabpos: grabpos,
+        pos: pos,
+      });
+
+      setAllPosLength(allPosLength - 1);
+
+      audioRef.current.play();
+    }
+  };
+
+  const forWard = () => {
+    if (allPosLength < allPos.length) {
+      let pos, grabpos;
+
+      if (users[0]?.username === user?.username) {
+        pos = allPos[allPosLength][1];
+
+        grabpos = allPos[allPosLength][0];
+
+        pieces[pos] = pieces[grabpos];
+        pieces[grabpos] = "";
+      } else {
+        pos = allPosOp[allPosLength][1];
+
+        grabpos = allPosOp[allPosLength][0];
+        piecesOpponent[pos] = piecesOpponent[grabpos];
+
+        piecesOpponent[grabpos] = "";
+      }
+
+      setPrevMovePos({
+        grabpos: grabpos,
+        pos: pos,
+      });
+
+      setAllPosLength(allPosLength + 1);
+      audioRef.current.play();
+    }
   };
 
   return (
@@ -172,9 +304,9 @@ export default function ChessBoard() {
         <div style={topAndBottomDiv}>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <h3 style={{ margin: 1, color: "white" }}>
-              {users[0].username === user.username
-                ? users[1].username
-                : users[0].username}
+              {users[0]?.username === user?.username
+                ? users[1]?.username
+                : users[0]?.username}
             </h3>
             <KilledPieceComponent
               users={users}
@@ -212,7 +344,8 @@ export default function ChessBoard() {
               setActivePiece,
               gridConstants,
               myTurn,
-              checkMatePopupData
+              checkMatePopupData,
+              setMoveTrack
             )
           }
           onMouseUp={(e) =>
@@ -243,7 +376,14 @@ export default function ChessBoard() {
               setPawnReachedOtherSideData,
               setOpponentCalledForCheck,
               setCheckMatePopUpData,
-              setPrevMovePos
+              setPrevMovePos,
+              setAllPos,
+              allPos,
+              setAllPosLength,
+              allPosLength,
+              setMoveTrack,
+              allPosOp,
+              setAllPosOp
             )
           }
           // onTouchStart={(e) => grabPiece(e)}
@@ -285,12 +425,20 @@ export default function ChessBoard() {
           <CheckMatePopUp
             checkMatePopupData={checkMatePopupData}
             setCheckMatePopUpData={setCheckMatePopUpData}
-            username={user.username}
+            username={user?.username}
           />
         )}
       </div>
 
-      <ChatBox roomId={roomid} username={user.username} socket={socket} />
+      <DetailsComponent
+        roomid={roomid}
+        user={user}
+        socket={socket}
+        allPos={users[0]?.username === user?.username ? allPos : allPosOp}
+        backWard={backWard}
+        forWard={forWard}
+        scrollRef={scrollRef}
+      />
     </div>
   );
 }
@@ -301,7 +449,7 @@ const rootDiv = {
   minHeight: "100vh",
   alignItems: "center",
   flexDirection: "row",
-  backgroundColor: "#212F3D",
+  backgroundColor: "rgba(46, 46, 46,0.9)",
   flexWrap: "wrap",
 };
 const chessBoardDiv = {

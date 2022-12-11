@@ -5,6 +5,7 @@ import {
   kingAbleToMoveAfterCheckMate,
 } from "./finalCheckMateAttackHelpers";
 import { gridConstants } from "./imageHelpers";
+import { moveTrackerMap } from "./moveTrackerHelper";
 import { checkMateMessageToSocket, messageToSocket } from "./socketApiHelper";
 import { isValidMoveForCheckMate, pieceValidMethodMap } from "./validHelpers";
 
@@ -19,15 +20,14 @@ export const grabPiece = (
   setActivePiece,
   gridConstants,
   myTurn,
-  checkMatePopupData
+  checkMatePopupData,
+  setMoveTrack
 ) => {
   if (myTurn && !checkMatePopupData) {
     try {
       let element = e.target;
 
       const chessboard = chessboardRef.current;
-
-      // console.log(isCheckMate(pieces))
 
       if (element.classList.contains("piece")) {
         const grabX = Math.floor(
@@ -39,25 +39,32 @@ export const grabPiece = (
           )
         );
 
-        setGrabPosition([grabY, grabX]);
-
         let grabpos = grabY.toString() + ":" + grabX.toString();
 
-        // console.log(grabpos);
-
-        // console.log(users,user.username)
-
         if (
-          users[0].username === user.username &&
+          users[0]?.username === user?.username &&
           pieces[grabpos]?.color !== "b"
         ) {
           return;
         } else if (
-          users[1].username === user.username &&
+          users[1]?.username === user?.username &&
           piecesOpponent[grabpos]?.color !== "w"
         ) {
           return;
         }
+
+        setGrabPosition([grabY, grabX]);
+
+        setMoveTrack(
+          moveTrackerMap(
+            grabY,
+            grabX,
+            users[0].username === user.username
+              ? pieces[grabpos].pieceName
+              : piecesOpponent[grabpos].pieceName,
+            users[0].username === user.username ? pieces : piecesOpponent
+          )
+        );
 
         const x = e.clientX - gridConstants.gridSize / 8 / 2;
         const y = e.clientY - gridConstants.gridSize / 8 / 2;
@@ -152,7 +159,14 @@ export const dropPiece = (
   setPawnReachedOtherSideData,
   setOpponentCalledForCheck,
   setCheckMatePopUpData,
-  setPrevMovePos
+  setPrevMovePos,
+  setAllPos,
+  allPos,
+  setAllPosLength,
+  allPosLength,
+  setMoveTrack,
+  allPosOp,
+  setAllPosOp
 ) => {
   try {
     const chessboard = chessboardRef.current;
@@ -193,7 +207,8 @@ export const dropPiece = (
             ? pieces[grabpos]?.pieceName
             : piecesOpponent[grabpos]?.pieceName,
           users[0]?.username === user.username ? pieces : piecesOpponent
-        )
+        ) ||
+        allPos.length !== allPosLength
       ) {
         activePiece.style.position = "relative";
         activePiece.style.removeProperty("top");
@@ -217,6 +232,7 @@ export const dropPiece = (
           activePiece.style.removeProperty("left");
 
           setActivePiece(null);
+          setMoveTrack();
 
           return;
         }
@@ -267,6 +283,7 @@ export const dropPiece = (
           activePiece.style.removeProperty("left");
 
           setActivePiece(null);
+          setMoveTrack();
 
           return;
         }
@@ -378,15 +395,24 @@ export const dropPiece = (
           pos: posOp,
         };
 
+        setAllPos([...allPos, [grabpos, pos]]);
+
+        // setAllPosOp([...allPosOp, [grabpos, pos]]);
+
+        setAllPosLength(allPos.length + 1);
+
         messageToSocket(
           roomid,
+          users,
           pieces,
           piecesOpponent,
           myTurn,
           killedPiecesData ? [...killedPieces, killedPiecesData] : killedPieces,
           opponentKilledPieces,
           time,
-          prevMovePos
+          prevMovePos,
+          [...allPos, [grabpos, pos]],
+          [...allPosOp, [grabposOp, posOp]]
         );
       } else if (
         users[1].username === user.username &&
@@ -410,6 +436,8 @@ export const dropPiece = (
           activePiece.style.removeProperty("left");
 
           setActivePiece(null);
+
+          setMoveTrack();
 
           return;
         }
@@ -461,6 +489,7 @@ export const dropPiece = (
           activePiece.style.removeProperty("left");
 
           setActivePiece(null);
+          setMoveTrack();
 
           return;
         }
@@ -578,8 +607,15 @@ export const dropPiece = (
           grabpos: grabposOp,
           pos: posOp,
         };
+
+        // setAllPos([...allPos, [grabpos, pos]]);
+
+        setAllPosOp([...allPosOp, [grabpos, pos]]);
+
+        setAllPosLength(allPosOp.length + 1);
         messageToSocket(
           roomid,
+          users,
           pieces,
           piecesOpponent,
           myTurn,
@@ -588,11 +624,15 @@ export const dropPiece = (
             ? [...opponentKilledPieces, killedPiecesOpponentData]
             : opponentKilledPieces,
           time,
-          prevMovePos
+          prevMovePos,
+          [...allPos, [grabposOp, posOp]],
+          [...allPosOp, [grabpos, pos]]
         );
       }
 
       setActivePiece(null);
+
+      setMoveTrack();
     }
   } catch (e) {
     console.log("Error while drop piece : ", e.message);
@@ -622,13 +662,98 @@ export const changePawnRechedOtherSizeData = (
 };
 
 export const getTurn = (users, user) => {
-  if (users[0].username === user.username) {
-    if (users[0].color === "w") return true;
+  if (users[0]?.username === user?.username) {
+    if (users[0]?.color === "w") return true;
   }
 
-  if (users[1].username === user.username) {
-    if (users[1].color === "w") return true;
+  if (users[1]?.username === user?.username) {
+    if (users[1]?.color === "w") return true;
   }
 
   return false;
+};
+
+export const movePosTracker = (x, y, pieces) => {
+  let allMoveTracker = {};
+  // up
+  for (let i = x - 1; i >= 0; i--) {
+    let pos = i.toString() + ":" + y.toString();
+
+    if (pieces[pos]) {
+      break;
+    }
+    allMoveTracker[pos] = true;
+  }
+
+  // down
+  for (let i = x + 1; i < 8; i++) {
+    let pos = i.toString() + ":" + y.toString();
+
+    if (pieces[pos]) {
+      break;
+    }
+    allMoveTracker[pos] = true;
+  }
+
+  // left
+  for (let i = y - 1; i >= 0; i--) {
+    let pos = x.toString() + ":" + i.toString();
+
+    if (pieces[pos]) {
+      break;
+    }
+    allMoveTracker[pos] = true;
+  }
+
+  // right
+  for (let i = y + 1; i < 8; i++) {
+    let pos = x.toString() + ":" + i.toString();
+
+    if (pieces[pos]) {
+      break;
+    }
+    allMoveTracker[pos] = true;
+  }
+
+  // left up
+  for (let i = x - 1, j = y - 1; i >= 0 && j >= 0; i--, j--) {
+    let pos = i.toString() + ":" + j.toString();
+
+    if (pieces[pos]) {
+      break;
+    }
+    allMoveTracker[pos] = true;
+  }
+
+  // left down
+  for (let i = x + 1, j = y - 1; i < 8 && j >= 0; i++, j--) {
+    let pos = i.toString() + ":" + j.toString();
+
+    if (pieces[pos]) {
+      break;
+    }
+    allMoveTracker[pos] = true;
+  }
+
+  // right up
+  for (let i = x - 1, j = y + 1; i >= 0 && j < 8; i--, j++) {
+    let pos = i.toString() + ":" + j.toString();
+
+    if (pieces[pos]) {
+      break;
+    }
+    allMoveTracker[pos] = true;
+  }
+
+  // right down
+  for (let i = x + 1, j = y + 1; i < 8 && j < 8; i++, j++) {
+    let pos = i.toString() + ":" + j.toString();
+
+    if (pieces[pos]) {
+      break;
+    }
+    allMoveTracker[pos] = true;
+  }
+
+  return allMoveTracker;
 };

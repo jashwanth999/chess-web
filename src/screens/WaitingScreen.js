@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
-import { addUser, addUsers } from "../api/action";
-import { socket } from "../helpers/socketHelper";
+import { useNavigate } from "react-router-dom";
+import { addUsers } from "../api/action";
+import { socket } from "../helpers/apiHelpers";
 
 export default function WaitingScreen() {
-  const [data, setData] = useState([]);
 
   const navigate = useNavigate();
 
@@ -13,12 +12,8 @@ export default function WaitingScreen() {
 
   useEffect(() => {
     socket.on("recieve_room_users", (data) => {
-      setData(data);
-
-      console.log(data);
-
+    
       dispatch(addUsers(data));
-
       navigate(`/room/${data[0].roomId}`);
     });
   }, [dispatch]);

@@ -1,43 +1,110 @@
-import React, { useEffect, useState } from "react";
+import { Avatar, Button } from "@mui/material";
+import axios from "axios";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { addUser, addUsers } from "../api/action";
-import { socket } from "../helpers/socketHelper";
+import { addUser } from "../api/action";
+import { socket, url } from "../helpers/apiHelpers";
 
 export default function Home() {
   const navigate = useNavigate();
-
   const dispatch = useDispatch();
-  const [username, setUsername] = useState("");
+
+  const user = useSelector((state) => state.user.user);
+
+  useEffect(() => {
+    const getUserDetails = async () => {
+      try {
+        const _id = localStorage.getItem("_id");
+        const response = await axios.post(`${url}/get-user`, {
+          _id,
+        });
+
+        const data = response.data;
+
+        dispatch(addUser(data.user));
+      } catch (e) {
+        console.log("Error while fetching user details", e.message);
+      }
+    };
+    getUserDetails();
+  }, [dispatch]);
+
+  const logout = () => {
+    localStorage.removeItem("_id");
+    navigate("/");
+  };
 
   const joinChessRoom = () => {
-    if (username === " ") return alert("please enter all details");
+    if (user?.username === " ") return alert("please enter all details");
     socket.emit("join_room", {
-      username,
+      username: user?.username,
     });
-
-    dispatch(addUser({ username }));
 
     navigate(`/waiting`);
   };
 
   return (
     <div style={rootDiv}>
-      <div style={loginDiv}>
-        <h2> A23 Chess</h2>
+      <div
+        style={{
+          height: 60,
+          display: "flex",
+          width: "100%",
+          backgroundColor: "#eabf69",
+          alignItems: "center",
+          justifyContent: "space-around",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Avatar sx={{ bgcolor: "#07C058" }}>
+            {user?.username && user?.username[0]}
+          </Avatar>
+          <h3 style={{ marginLeft: 5 }}> {user?.username}</h3>
+        </div>
 
-        <input
-          style={inputStyle}
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="Username"
+        <img
+          src={"https://www.a23.com/index_assets/images/a23-games-logo.svg"}
+          alt=""
+          style={{ height: 40, width: 40, margin: 5 }}
         />
+
+        <Button onClick={logout} style={{ fontWeight: "bold" }}>
+          {" "}
+          Logout
+        </Button>
+      </div>
+
+      <div style={{ padding: 10 }}>
+        <h2 style={{ color: "white" }}> Play </h2>
+        <div
+          style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}
+        >
+          <Button onClick={joinChessRoom} style={timeComp}>
+            3 min
+          </Button>
+          <Button style={timeComp}>5 min</Button>
+          <Button style={timeComp}>10 min</Button>
+          <Button style={timeComp}>15 min</Button>
+          <Button style={timeComp}>30 min</Button>
+        </div>
         <br />
 
-        <button style={joinButtonStyle} onClick={joinChessRoom}>
-          {" "}
-          Join
-        </button>
+        <h2 style={{ color: "white" }}> Other </h2>
+
+        <div
+          style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}
+        >
+          <Button style={otherComponent}>Custom Game</Button>
+          <Button style={otherComponent}>Play Friend</Button>
+        </div>
       </div>
     </div>
   );
@@ -45,40 +112,23 @@ export default function Home() {
 
 const rootDiv = {
   display: "flex",
-  justifyContent: "center",
   height: "100vh",
-  alignItems: "center",
   backgroundColor: "rgb(46, 46, 46)",
-};
-
-const loginDiv = {
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
   flexDirection: "column",
-  width: 250,
-  height: 200,
-  borderRadius: 5,
-  backgroundColor: "rgb(255, 253, 234)",
 };
 
-const inputStyle = {
-  width: "60%",
-  padding: 5,
-  outline: "none",
-  backgroundColor: "rgb(255, 253, 234)",
-  border: "none",
-  borderBottom: "1px solid black",
-};
-
-const joinButtonStyle = {
-  backgroundColor: "green",
-  width: "28%",
-  padding: 5,
-  border: "none",
-  outline: "none",
-  borderRadius: 2,
+const timeComp = {
   color: "white",
-  marginTop: 8,
-  cursor: "pointer",
+  backgroundColor: "#05274B",
+  height: 60,
+  margin: 2,
+  fontSize: 20,
+};
+
+const otherComponent = {
+  color: "white",
+  backgroundColor: "#05274B",
+  height: 60,
+  margin: 2,
+  fontSize: 16,
 };

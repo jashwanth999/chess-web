@@ -60,9 +60,9 @@ const messagesDiv = {
 };
 
 const chatDiv = {
-  height: gridConstants.gridSize,
+  height: gridConstants.gridSize/1.3,
   width: gridConstants.gridSize,
-  borderRadius: 2,
+  borderRadius: 4,
   display: "flex",
   flexDirection: "column",
   marginLeft: 10,
@@ -73,15 +73,15 @@ const messageInputDiv = {
   flex: 0.05,
   display: "flex",
   flexDirection: "row",
-  borderBottomLeftRadius: 2,
-  borderBottomRightRadius: 2,
+  borderBottomLeftRadius: 4,
+  borderBottomRightRadius: 4,
 };
 
 const messageInputStyle = {
   padding: 5,
   flex: 1,
-  borderBottomLeftRadius: 2,
-  borderBottomRightRadius: 2,
+  borderBottomLeftRadius: 4,
+  borderBottomRightRadius: 4,
   outline: "none",
   border: "none",
   backgroundColor: "rgb(46, 46, 46)",

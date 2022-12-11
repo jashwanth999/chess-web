@@ -1,17 +1,21 @@
-import { socket } from "./socketHelper";
+import { socket } from "./apiHelpers";
 
 export const messageToSocket = (
   roomid,
+  users,
   pieces,
   piecesOpponent,
   myTurn,
   killedPieces,
   opponentKilledPieces,
   time,
-  prevMovePos
+  prevMovePos,
+  allPos,
+  allPosOp
 ) => {
   socket.emit("send_data", {
     roomid,
+    users,
     pieces,
     piecesOpponent,
     turn: myTurn,
@@ -19,6 +23,8 @@ export const messageToSocket = (
     opponentKilledPieces: opponentKilledPieces,
     time,
     prevMovePos,
+    allPos,
+    allPosOp
   });
 };
 
