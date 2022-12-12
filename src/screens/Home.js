@@ -23,6 +23,11 @@ export default function Home() {
         const data = response.data;
 
         dispatch(addUser(data.user));
+
+        if (data.user.isInGame) {
+          socket.emit("reconnection", { roomId: data.user.activeGameRoomId });
+          navigate(`/room/${data.user.activeGameRoomId}`);
+        }
       } catch (e) {
         console.log("Error while fetching user details", e.message);
       }
@@ -36,7 +41,7 @@ export default function Home() {
   };
 
   const joinChessRoom = () => {
-    if (user?.username === " ") return alert("please enter all details");
+    if (user?.username === "") return alert("please enter all details");
     socket.emit("join_room", {
       username: user?.username,
     });

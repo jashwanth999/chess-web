@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Box from "../components/Box";
 import { socket, url } from "../helpers/apiHelpers";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addUser,
@@ -21,9 +21,17 @@ import PawnReachedOtherSide from "../components/PawnReachedOtherSide";
 import CheckMatePopUp from "../components/CheckMatePopUp";
 import DetailsComponent from "../components/DetailsComponent";
 import axios from "axios";
+import { ArrowBack, ChevronLeft } from "@mui/icons-material";
+import { IconButton } from "@mui/material";
 
 export default function ChessBoard() {
   const { roomid } = useParams();
+
+  const _id = localStorage.getItem("_id");
+
+  const dispatch = useDispatch();
+
+  const navigate = useNavigate();
 
   const pieces = useSelector((state) => state.pieces.pieces);
 
@@ -39,7 +47,6 @@ export default function ChessBoard() {
 
   const kingPosOp = useSelector((state) => state.kingPosOp.kingPosOp);
 
-  const dispatch = useDispatch();
   const [activePiece, setActivePiece] = useState(null);
   const [grabPosition, setGrabPosition] = useState([-1, -1]);
 
@@ -194,11 +201,22 @@ export default function ChessBoard() {
   }, [dispatch, roomid]);
 
   useEffect(() => {
-    
     socket.on("recieve_check_mate_data", (data) => {
       setCheckMatePopUpData(data);
     });
   }, [checkMatePopupData]);
+
+  useEffect(() => {
+    const updateUser = async () => {
+      await axios.post(`${url}/update-user`, {
+        _id: _id,
+        isInGame: true,
+        roomId: roomid,
+      });
+    };
+
+    updateUser();
+  }, []);
 
   // console.log(kingPosOp);
 
@@ -298,9 +316,27 @@ export default function ChessBoard() {
     }
   };
 
+  const exitRoom = async () => {
+    await axios.post(`${url}/update-user`, {
+      _id: _id,
+      isInGame: false,
+      roomId: roomid,
+    });
+
+    socket.emit("leave_room", { roomId: roomid });
+
+    navigate("/home");
+  };
+
   return (
     <div style={rootDiv}>
       <div>
+        <IconButton
+          onClick={exitRoom}
+          style={{ top: 10, left: 10, position: "absolute", color: "white" }}
+        >
+          <ArrowBack style={{ color: "white" }} />
+        </IconButton>
         <div style={topAndBottomDiv}>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <h3 style={{ margin: 1, color: "white" }}>
