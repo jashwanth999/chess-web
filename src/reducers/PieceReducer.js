@@ -1,13 +1,8 @@
-import {
-  pieces,
-  piecesOpponent,
-
-} from "../helpers/imageHelpers";
+import { initialPieces, initialPiecesOpponent } from "../helpers/imageHelpers";
 
 const initialState = {
-  pieces: pieces,
-  piecesOpponent: piecesOpponent,
- 
+  pieces: initialPieces,
+  piecesOpponent: initialPiecesOpponent,
 };
 export const pieceReducer = (state = initialState, action) => {
   switch (action.type) {
@@ -23,6 +18,17 @@ export const pieceReducer = (state = initialState, action) => {
         piecesOpponent: action.payload,
       };
 
+    case "RESET":
+      return {
+        ...state,
+        pieces: initialPieces,
+      };
+
+    case "RESET_OPPONENT":
+      return {
+        ...state,
+        piecesOpponent: initialPiecesOpponent,
+      };
     default:
       return state;
   }

@@ -11,11 +11,11 @@ export default function Home() {
   const dispatch = useDispatch();
 
   const user = useSelector((state) => state.user.user);
+  const _id = localStorage.getItem("_id");
 
   useEffect(() => {
     const getUserDetails = async () => {
       try {
-        const _id = localStorage.getItem("_id");
         const response = await axios.post(`${url}/get-user`, {
           _id,
         });
@@ -33,7 +33,7 @@ export default function Home() {
       }
     };
     getUserDetails();
-  }, [dispatch]);
+  }, [dispatch, _id]);
 
   const logout = () => {
     localStorage.removeItem("_id");
@@ -41,7 +41,6 @@ export default function Home() {
   };
 
   const joinChessRoom = () => {
-    if (user?.username === "") return alert("please enter all details");
     socket.emit("join_room", {
       username: user?.username,
     });
@@ -95,10 +94,18 @@ export default function Home() {
           <Button onClick={joinChessRoom} style={timeComp}>
             3 min
           </Button>
-          <Button style={timeComp}>5 min</Button>
-          <Button style={timeComp}>10 min</Button>
-          <Button style={timeComp}>15 min</Button>
-          <Button style={timeComp}>30 min</Button>
+          <Button onClick={joinChessRoom} style={timeComp}>
+            5 min
+          </Button>
+          <Button onClick={joinChessRoom} style={timeComp}>
+            10 min
+          </Button>
+          <Button onClick={joinChessRoom} style={timeComp}>
+            15 min
+          </Button>
+          <Button onClick={joinChessRoom} style={timeComp}>
+            30 min
+          </Button>
         </div>
         <br />
 
@@ -124,7 +131,7 @@ const rootDiv = {
 
 const timeComp = {
   color: "white",
-  backgroundColor: "#05274B",
+  backgroundColor: "rgba(191, 41, 41, 0.5)",
   height: 60,
   margin: 2,
   fontSize: 20,
@@ -132,7 +139,7 @@ const timeComp = {
 
 const otherComponent = {
   color: "white",
-  backgroundColor: "#05274B",
+  backgroundColor: "rgba(191, 41, 41, 0.5)",
   height: 60,
   margin: 2,
   fontSize: 16,

@@ -22,6 +22,7 @@ export default function DetailsComponent({
   backWard,
   forWard,
   scrollRef,
+  totalBackWard,
 }) {
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
