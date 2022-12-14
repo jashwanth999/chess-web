@@ -24,9 +24,9 @@ export default function Home() {
 
         dispatch(addUser(data.user));
 
-        if (data.user.isInGame) {
+        if (data.user?.isInGame) {
           socket.emit("reconnection", { roomId: data.user.activeGameRoomId });
-          navigate(`/room/${data.user.activeGameRoomId}`);
+          // navigate(`/room/${data.user.activeGameRoomId}`);
         }
       } catch (e) {
         console.log("Error while fetching user details", e.message);
@@ -37,7 +37,7 @@ export default function Home() {
 
   const logout = () => {
     localStorage.removeItem("_id");
-    navigate("/");
+    navigate("/")
   };
 
   const joinChessRoom = () => {

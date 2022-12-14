@@ -93,7 +93,7 @@ export default function DetailsComponent({
           justifyContent: "space-evenly",
         }}
       >
-        <IconButton style={{ color: "lightgray" }}>
+        <IconButton onClick={totalBackWard} style={{ color: "lightgray" }}>
           <FirstPage style={icons} />
         </IconButton>
         <IconButton onClick={backWard} style={{ color: "lightgray" }}>

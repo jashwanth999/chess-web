@@ -13,6 +13,8 @@ import LoginOrSignup from "./screens/LoginOrSignup";
 function App() {
   const userId = localStorage.getItem("_id");
 
+  console.log(userId);
+
   return (
     <Router>
       <Routes>

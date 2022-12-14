@@ -1,4 +1,8 @@
 import { initialPieces, initialPiecesOpponent } from "../helpers/imageHelpers";
+import {
+  tempInitialPieces,
+  tempInitialPiecesOpponent,
+} from "../helpers/imageHelpers";
 
 const initialState = {
   pieces: initialPieces,
@@ -20,14 +24,12 @@ export const pieceReducer = (state = initialState, action) => {
 
     case "RESET":
       return {
-        ...state,
-        pieces: initialPieces,
+        pieces: tempInitialPieces,
       };
 
     case "RESET_OPPONENT":
       return {
-        ...state,
-        piecesOpponent: initialPiecesOpponent,
+        piecesOpponent: tempInitialPiecesOpponent,
       };
     default:
       return state;

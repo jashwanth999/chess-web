@@ -145,8 +145,6 @@ export const dropPiece = (
   setActivePiece,
   setMyTurn,
   dispatch,
-  timer,
-  opponentTimer,
   kingPos,
   kingPosOp,
   myTurn,
@@ -358,7 +356,6 @@ export const dropPiece = (
         activePiece.style.removeProperty("left");
 
         if (grabpos === pos) {
-          clearInterval(opponentTimer);
           setMyTurn(true);
         } else {
           setMyTurn(false);
@@ -564,7 +561,6 @@ export const dropPiece = (
         activePiece.style.removeProperty("left");
 
         if (grabpos === pos) {
-          clearInterval(opponentTimer);
           setMyTurn(true);
         } else {
           setMyTurn(false);

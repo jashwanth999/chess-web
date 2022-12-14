@@ -16,6 +16,10 @@ import {
   h,
   initialPieces,
   initialPiecesOpponent,
+  p,
+  po,
+  tempInitialPieces,
+  tempInitialPiecesOpponent,
   v,
 } from "../helpers/imageHelpers";
 import {
@@ -96,10 +100,6 @@ export default function ChessBoard() {
 
   let board = [];
 
-  let timer;
-
-  let opponentTimer;
-
   for (let i = 0; i < h.length; i++) {
     for (let j = 0; j < v.length; j++) {
       const number = j + i + 2;
@@ -138,13 +138,15 @@ export default function ChessBoard() {
 
       setPrevMovePos(data.prevMovePos);
 
-      setMinutes(data.time.minutes);
+      console.log(data.time);
 
-      setSeconds(data.time.seconds);
+      setMinutes(data.time.opponentMinutes);
 
-      setOpponentMinutes(data.time.opponentMinutes);
+      setSeconds(data.time.opponentSeconds);
 
-      setOpponentSeconds(data.time.opponentSeconds);
+      setOpponentMinutes(data.time.minutes);
+
+      setOpponentSeconds(data.time.seconds);
 
       setAllPos(data.allPos);
 
@@ -160,49 +162,51 @@ export default function ChessBoard() {
         roomId: roomid,
       });
 
-      const _id = localStorage.getItem("_id");
+      if (roomResponse.data.data) {
+        const _id = localStorage.getItem("_id");
 
-      const response = await axios.post(`${url}/get-user`, {
-        _id,
-      });
+        const response = await axios.post(`${url}/get-user`, {
+          _id,
+        });
 
-      const userData = response.data;
+        const userData = response.data;
 
-      dispatch(addUser(userData.user));
+        dispatch(addUser(userData.user));
 
-      socket.emit("reconnection", { roomId: roomid });
+        socket.emit("reconnection", { roomId: roomid });
 
-      const data = roomResponse.data.data;
+        const data = roomResponse.data.data;
 
-      dispatch(changePiecePositionAction(data.pieces));
+        dispatch(changePiecePositionAction(data.pieces));
 
-      dispatch(changeOpponentPiecePositionAction(data.piecesOpponent));
+        dispatch(changeOpponentPiecePositionAction(data.piecesOpponent));
 
-      dispatch(addUsers(data.users));
+        dispatch(addUsers(data.users));
 
-      setMyTurn(data.turn);
+        setMyTurn(data.turn);
 
-      setKilledPieces(data.killedPieces);
+        setKilledPieces(data.killedPieces);
 
-      setOpponentKilledPieces(data.opponentKilledPieces);
+        setOpponentKilledPieces(data?.opponentKilledPieces);
 
-      setPrevMovePos(data.prevMovePos);
+        setPrevMovePos(data?.prevMovePos);
 
-      setMinutes(data.time.minutes);
+        setMinutes(data.time.minutes);
 
-      setSeconds(data.time.seconds);
+        setSeconds(data.time.seconds);
 
-      setOpponentMinutes(data.time.opponentMinutes);
+        setOpponentMinutes(data.time.opponentMinutes);
 
-      setOpponentSeconds(data.time.opponentSeconds);
+        setOpponentSeconds(data.time.opponentSeconds);
 
-      setAllPos(data.allPos);
+        setAllPos(data.allPos);
 
-      setAllPosOp(data.allPosOp);
+        setAllPosOp(data.allPosOp);
 
-      setPrevMovePos(data.prevMovePos);
+        setPrevMovePos(data.prevMovePos);
 
-      setAllPosLength(data.allPos.length);
+        setAllPosLength(data.allPos.length);
+      }
     };
 
     fetchRoomData();
@@ -232,33 +236,31 @@ export default function ChessBoard() {
 
   // console.log(users);
 
-  // useEffect(() => {
-  //   if (myTurn) {
-  //     timer = setInterval(() => {
-  //       setSeconds(seconds - 1);
+  useEffect(() => {
+    if (myTurn) {
+      let timer = setInterval(() => {
+        setSeconds(seconds - 1);
 
-  //       if (seconds === 0) {
-  //         setSeconds(59);
-  //         setMinutes(minutes - 1);
-  //       }
-  //     }, 1000);
+        if (seconds === 0) {
+          setSeconds(59);
+          setMinutes(minutes - 1);
+        }
+      }, 1000);
 
-  //     console.log(timer)
+      return () => clearInterval(timer);
+    } else {
+      let opponentTimer = setInterval(() => {
+        setOpponentSeconds(opponentSeconds - 1);
 
-  //     return () => clearInterval(timer);
-  //   } else {
-  //     opponentTimer = setInterval(() => {
-  //       setOpponentSeconds(opponentSeconds - 1);
+        if (opponentSeconds === 0) {
+          setOpponentSeconds(59);
+          setOpponentMinutes(opponentMinutes - 1);
+        }
+      }, 1000);
 
-  //       if (opponentSeconds === 0) {
-  //         setOpponentSeconds(59);
-  //         setOpponentMinutes(opponentMinutes - 1);
-  //       }
-  //     }, 1000);
-
-  //     return () => clearInterval(opponentTimer);
-  //   }
-  // });
+      return () => clearInterval(opponentTimer);
+    }
+  });
 
   let time = {
     minutes: minutes,
@@ -267,41 +269,7 @@ export default function ChessBoard() {
     opponentSeconds: opponentSeconds,
   };
 
-  const totalBackWard = () => {
-    if (users[0]?.username === user?.username) {
-      while (allPosLength >= 1) {
-        let pos, grabpos;
-
-        pos = allPos[allPosLength - 1][1];
-
-        grabpos = allPos[allPosLength - 1][0];
-        pieces[grabpos] = pieces[pos];
-        pieces[pos] =
-          allPos && allPos[allPosLength - 1] && allPos[allPosLength - 1][2]
-            ? allPos[allPosLength - 1][2]
-            : "";
-
-        setAllPosLength(allPosLength - 1);
-      }
-    } else {
-      while (allPosLength >= 1) {
-        let pos, grabpos;
-
-        pos = allPosOp[allPosLength - 1][1];
-
-        grabpos = allPosOp[allPosLength - 1][0];
-        piecesOpponent[grabpos] = piecesOpponent[pos];
-        piecesOpponent[pos] =
-          allPosOp &&
-          allPosOp[allPosLength - 1] &&
-          allPosOp[allPosLength - 1][2]
-            ? allPosOp[allPosLength - 1][2]
-            : "";
-
-        setAllPosLength(allPosLength - 1);
-      }
-    }
-  };
+  const totalBackWard = () => {};
 
   const backWard = () => {
     if (allPosLength >= 1) {
@@ -382,6 +350,8 @@ export default function ChessBoard() {
     dispatch(resetOpponentPieces(initialPiecesOpponent));
 
     navigate("/home");
+
+    window.location.reload();
   };
 
   return (
@@ -454,8 +424,7 @@ export default function ChessBoard() {
               setActivePiece,
               setMyTurn,
               dispatch,
-              timer,
-              opponentTimer,
+
               kingPos,
               kingPosOp,
               myTurn,

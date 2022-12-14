@@ -24,7 +24,7 @@ export const messageToSocket = (
     time,
     prevMovePos,
     allPos,
-    allPosOp
+    allPosOp,
   });
 };
 
