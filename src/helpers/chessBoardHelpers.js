@@ -395,11 +395,11 @@ export const dropPiece = (
           pos: posOp,
         };
 
-        setAllPos([...allPos, [grabpos, pos]]);
+        setAllPos([...allPos, [grabpos, pos, killedPiecesData]]);
 
         // setAllPosOp([...allPosOp, [grabpos, pos]]);
 
-        setAllPosLength(allPos.length + 1);
+        setAllPosLength(allPosLength + 1);
 
         messageToSocket(
           roomid,
@@ -411,8 +411,8 @@ export const dropPiece = (
           opponentKilledPieces,
           time,
           prevMovePos,
-          [...allPos, [grabpos, pos]],
-          [...allPosOp, [grabposOp, posOp]]
+          [...allPos, [grabpos, pos, killedPiecesData]],
+          [...allPosOp, [grabposOp, posOp, killedPiecesData]]
         );
       } else if (
         users[1].username === user.username &&
@@ -610,9 +610,9 @@ export const dropPiece = (
 
         // setAllPos([...allPos, [grabpos, pos]]);
 
-        setAllPosOp([...allPosOp, [grabpos, pos]]);
+        setAllPosOp([...allPosOp, [grabpos, pos, killedPiecesOpponentData]]);
 
-        setAllPosLength(allPosOp.length + 1);
+        setAllPosLength(allPosLength + 1);
         messageToSocket(
           roomid,
           users,
@@ -625,8 +625,8 @@ export const dropPiece = (
             : opponentKilledPieces,
           time,
           prevMovePos,
-          [...allPos, [grabposOp, posOp]],
-          [...allPosOp, [grabpos, pos]]
+          [...allPos, [grabposOp, posOp, killedPiecesOpponentData]],
+          [...allPosOp, [grabpos, pos, killedPiecesOpponentData]]
         );
       }
 

@@ -8,8 +8,16 @@ import {
   addUsers,
   changeOpponentPiecePositionAction,
   changePiecePositionAction,
+  resetOpponentPieces,
+  resetPiece,
 } from "../api/action";
-import { gridConstants, h, v } from "../helpers/imageHelpers";
+import {
+  gridConstants,
+  h,
+  initialPieces,
+  initialPiecesOpponent,
+  v,
+} from "../helpers/imageHelpers";
 import {
   dropPiece,
   getTurn,
@@ -216,7 +224,7 @@ export default function ChessBoard() {
     };
 
     updateUser();
-  }, []);
+  }, [_id, roomid]);
 
   // console.log(kingPosOp);
 
@@ -258,6 +266,43 @@ export default function ChessBoard() {
     opponentMinutes: opponentMinutes,
     opponentSeconds: opponentSeconds,
   };
+
+  const totalBackWard = () => {
+    if (users[0]?.username === user?.username) {
+      while (allPosLength >= 1) {
+        let pos, grabpos;
+
+        pos = allPos[allPosLength - 1][1];
+
+        grabpos = allPos[allPosLength - 1][0];
+        pieces[grabpos] = pieces[pos];
+        pieces[pos] =
+          allPos && allPos[allPosLength - 1] && allPos[allPosLength - 1][2]
+            ? allPos[allPosLength - 1][2]
+            : "";
+
+        setAllPosLength(allPosLength - 1);
+      }
+    } else {
+      while (allPosLength >= 1) {
+        let pos, grabpos;
+
+        pos = allPosOp[allPosLength - 1][1];
+
+        grabpos = allPosOp[allPosLength - 1][0];
+        piecesOpponent[grabpos] = piecesOpponent[pos];
+        piecesOpponent[pos] =
+          allPosOp &&
+          allPosOp[allPosLength - 1] &&
+          allPosOp[allPosLength - 1][2]
+            ? allPosOp[allPosLength - 1][2]
+            : "";
+
+        setAllPosLength(allPosLength - 1);
+      }
+    }
+  };
+
   const backWard = () => {
     if (allPosLength >= 1) {
       let pos, grabpos;
@@ -266,13 +311,21 @@ export default function ChessBoard() {
 
         grabpos = allPos[allPosLength - 1][0];
         pieces[grabpos] = pieces[pos];
-        pieces[pos] = "";
+        pieces[pos] =
+          allPos && allPos[allPosLength - 1] && allPos[allPosLength - 1][2]
+            ? allPos[allPosLength - 1][2]
+            : "";
       } else {
         pos = allPosOp[allPosLength - 1][1];
 
         grabpos = allPosOp[allPosLength - 1][0];
         piecesOpponent[grabpos] = piecesOpponent[pos];
-        piecesOpponent[pos] = "";
+        piecesOpponent[pos] =
+          allPosOp &&
+          allPosOp[allPosLength - 1] &&
+          allPosOp[allPosLength - 1][2]
+            ? allPosOp[allPosLength - 1][2]
+            : "";
       }
 
       setPrevMovePos({
@@ -287,7 +340,7 @@ export default function ChessBoard() {
   };
 
   const forWard = () => {
-    if (allPosLength < allPos.length) {
+    if (allPosLength < allPos.length || allPosLength < allPosOp.length) {
       let pos, grabpos;
 
       if (users[0]?.username === user?.username) {
@@ -324,6 +377,9 @@ export default function ChessBoard() {
     });
 
     socket.emit("leave_room", { roomId: roomid });
+
+    dispatch(resetPiece(initialPieces));
+    dispatch(resetOpponentPieces(initialPiecesOpponent));
 
     navigate("/home");
   };
@@ -474,6 +530,7 @@ export default function ChessBoard() {
         backWard={backWard}
         forWard={forWard}
         scrollRef={scrollRef}
+        totalBackWard={totalBackWard}
       />
     </div>
   );

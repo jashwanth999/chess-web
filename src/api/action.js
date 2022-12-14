@@ -39,3 +39,17 @@ export const changeOpponentKingPosition = (data) => {
     payload: data,
   };
 };
+
+export const resetPiece = (data) => {
+  return {
+    type: "RESET",
+    payload: data,
+  };
+};
+
+export const resetOpponentPieces = (data) => {
+  return {
+    type: "RESET_OPPONENT",
+    payload: data,
+  };
+};

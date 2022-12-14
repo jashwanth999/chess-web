@@ -1,4 +1,4 @@
-export const pieces = {
+export const initialPieces = {
   "0:0": { image: require("../assets/wr.png"), color: "w", pieceName: "r" },
   "0:1": { image: require("../assets/wn.png"), color: "w", pieceName: "n" },
   "0:2": { image: require("../assets/wb.png"), color: "w", pieceName: "b" },
@@ -36,7 +36,7 @@ export const pieces = {
   "6:7": { image: require("../assets/bp.png"), color: "b", pieceName: "p" },
 };
 
-export const piecesOpponent = {
+export const initialPiecesOpponent = {
   "0:0": { image: require("../assets/br.png"), color: "b", pieceName: "r" },
   "0:1": { image: require("../assets/bn.png"), color: "b", pieceName: "n" },
   "0:2": { image: require("../assets/bb.png"), color: "b", pieceName: "b" },
