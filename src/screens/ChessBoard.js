@@ -137,9 +137,7 @@ export default function ChessBoard() {
       // console.log(data.time)
 
       setPrevMovePos(data.prevMovePos);
-
-    
-
+      
       setMinutes(data.time.opponentMinutes);
 
       setSeconds(data.time.opponentSeconds);
