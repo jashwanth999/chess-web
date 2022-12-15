@@ -389,6 +389,38 @@ export const isValidMoveForCheckMate = (kingPosX, kingPosY, pieces) => {
         } else break;
       }
     }
+
+    // knight attack
+
+    let allKnightPos = [
+      [2, 1],
+      [-2, 1],
+      [2, -1],
+      [-2, -1],
+      [1, 2],
+      [-1, 2],
+      [-1, -2],
+      [1, -2],
+    ];
+
+    for (let i = 0; i < 8; i++) {
+      let pos =
+        (kingPosX + allKnightPos[i][0]).toString() +
+        ":" +
+        (kingPosY + allKnightPos[i][1]).toString();
+
+      if (pieces[pos] && pieces[pos].color === pieces[grabPos].color) {
+        continue;
+      }
+
+      if (pieces[pos] && pieces[pos].color !== pieces[grabPos].color) {
+        if (pieces[pos].pieceName === "n") {
+          console.log("knight");
+          checkMateCount++;
+          break;
+        } else break;
+      }
+    }
   } catch (e) {
     console.log("Error while validating move for checkmate", e.message);
   }

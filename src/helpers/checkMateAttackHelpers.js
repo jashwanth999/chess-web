@@ -8,7 +8,7 @@ export const callingOpponentForCheckMate = (
 ) => {
   let checkMateAttack = new CheckMateAttack(kingPosX, kingPosY, x, y, pieces);
 
-  // console.log(kingPosX, kingPosY, x, y, pieceName);
+  console.log(kingPosX, kingPosY, x, y, pieceName);
 
   if (pieceName === "p") {
     return checkMateAttack.isPawn();

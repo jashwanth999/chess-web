@@ -217,6 +217,7 @@ export const checkMateStopFromOTherPiece = (
   }
 
   if (knightAttack) {
+    console.log("knight")
     return allPiecesOfKingColorAbleToStopCheckMate(
       pieces,
       currentPiecePosX,
@@ -225,6 +226,7 @@ export const checkMateStopFromOTherPiece = (
       kingPosY
     );
   }
+  console.log("all pieces not able to stop king")
 
   return false;
 };
@@ -251,8 +253,6 @@ export const allPiecesOfKingColorAbleToStopCheckMate = (
     if (kingPos === piecePos || pieces[piecePos].color !== kingPosColor) {
       continue;
     }
-
-    // console.log(piecePos, kingPos, piecePosX, piecePosY);
 
     if (
       pieceValidMethodMap(
