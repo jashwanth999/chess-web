@@ -304,8 +304,8 @@ export const dropPiece = (
           setOpponentCalledForCheck(true);
 
           let checkMateCount = isValidMoveForCheckMate(
-            7 - Number(kingPos.split(":")[0]),
-            7 - Number(kingPos.split(":")[1]),
+            7 - Number(kingPosOp.split(":")[0]),
+            7 - Number(kingPosOp.split(":")[1]),
             pieces
           );
 
@@ -495,8 +495,8 @@ export const dropPiece = (
 
         if (
           callingOpponentForCheckMate(
-            7 - Number(kingPosOp.split(":")[0]),
-            7 - Number(kingPosOp.split(":")[1]),
+            7 - Number(kingPos.split(":")[0]),
+            7 - Number(kingPos.split(":")[1]),
             y,
             x,
             piecesOpponent[pos].pieceName,
@@ -519,8 +519,8 @@ export const dropPiece = (
           if (checkMateCount > 1) {
             if (
               !kingAbleToMoveAfterCheckMate(
-                7 - Number(kingPosOp.split(":")[0]),
-                7 - Number(kingPosOp.split(":")[1]),
+                7 - Number(kingPos.split(":")[0]),
+                7 - Number(kingPos.split(":")[1]),
                 piecesOpponent
               )
             ) {
@@ -535,14 +535,14 @@ export const dropPiece = (
           } else if (
             !checkMateStopFromOTherPiece(
               piecesOpponent,
-              7 - Number(kingPosOp.split(":")[0]),
-              7 - Number(kingPosOp.split(":")[1]),
+              7 - Number(kingPos.split(":")[0]),
+              7 - Number(kingPos.split(":")[1]),
               y,
               x
             ) &&
             !kingAbleToMoveAfterCheckMate(
-              7 - Number(kingPosOp.split(":")[0]),
-              7 - Number(kingPosOp.split(":")[1]),
+              7 - Number(kingPos.split(":")[0]),
+              7 - Number(kingPos.split(":")[1]),
               piecesOpponent
             )
           ) {
