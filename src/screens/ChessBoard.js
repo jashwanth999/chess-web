@@ -60,6 +60,7 @@ export default function ChessBoard() {
   const kingPosOp = useSelector((state) => state.kingPosOp.kingPosOp);
 
   const [activePiece, setActivePiece] = useState(null);
+
   const [grabPosition, setGrabPosition] = useState([-1, -1]);
 
   const [killedPieces, setKilledPieces] = useState([]);
@@ -78,7 +79,7 @@ export default function ChessBoard() {
 
   const [pawnReachedOtherSideData, setPawnReachedOtherSideData] = useState({});
 
-  const [opponetCalledForCheck, setOpponentCalledForCheck] = useState(false);
+  const [opponetCalledForCheck, setOpponentCalledForCheck] = useState({});
 
   const [checkMatePopupData, setCheckMatePopUpData] = useState();
 
@@ -108,6 +109,7 @@ export default function ChessBoard() {
 
       board.push(
         <Box
+          key={cord}
           image={
             users[0]?.username === user?.username
               ? pieces[cord]?.image
@@ -267,7 +269,83 @@ export default function ChessBoard() {
     opponentSeconds: opponentSeconds,
   };
 
-  const totalBackWard = () => {};
+  const totalForward = () => {
+    if (users[0]?.username === user?.username) {
+      let pos, grabpos;
+      for (let i = allPosLength; i < allPos.length; i++) {
+        pos = allPos[i][1];
+
+        grabpos = allPos[i][0];
+
+        pieces[pos] = pieces[grabpos];
+        pieces[grabpos] = "";
+      }
+
+      setPrevMovePos({
+        grabpos: grabpos,
+        pos: pos,
+      });
+
+      setAllPosLength(allPos.length);
+    } else {
+      let pos, grabpos;
+      for (let i = allPosLength; i < allPosOp.length; i++) {
+        pos = allPosOp[i][1];
+
+        grabpos = allPosOp[i][0];
+        piecesOpponent[pos] = piecesOpponent[grabpos];
+
+        piecesOpponent[grabpos] = "";
+      }
+
+      setPrevMovePos({
+        grabpos: grabpos,
+        pos: pos,
+      });
+
+      setAllPosLength(allPosOp.length);
+    }
+  };
+
+  const totalBackWard = () => {
+    if (users[0]?.username === user?.username) {
+      let pos, grabpos;
+      for (let i = allPosLength; i >= 1; i--) {
+        pos = allPos[i - 1][1];
+
+        grabpos = allPos[i - 1][0];
+        pieces[grabpos] = pieces[pos];
+        pieces[pos] =
+          allPos && allPos[i - 1] && allPos[i - 1][2] ? allPos[i - 1][2] : "";
+      }
+
+      setPrevMovePos({
+        grabpos: grabpos,
+        pos: pos,
+      });
+
+      setAllPosLength(0);
+    } else {
+      let pos, grabpos;
+      for (let i = allPosLength; i >= 1; i--) {
+        pos = allPosOp[i - 1][1];
+
+        grabpos = allPosOp[i - 1][0];
+        piecesOpponent[grabpos] = piecesOpponent[pos];
+        piecesOpponent[pos] =
+          allPosOp && allPosOp[i - 1] && allPosOp[i - 1][2]
+            ? allPosOp[i - 1][2]
+            : "";
+      }
+
+      setPrevMovePos({
+        grabpos: grabpos,
+        pos: pos,
+      });
+
+      setAllPosLength(0);
+    }
+  };
 
   const backWard = () => {
     if (allPosLength >= 1) {
@@ -498,6 +576,7 @@ export default function ChessBoard() {
         forWard={forWard}
         scrollRef={scrollRef}
         totalBackWard={totalBackWard}
+        totalForward={totalForward}
       />
     </div>
   );

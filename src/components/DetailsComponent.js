@@ -23,6 +23,7 @@ export default function DetailsComponent({
   forWard,
   scrollRef,
   totalBackWard,
+  totalForward,
 }) {
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
@@ -99,13 +100,10 @@ export default function DetailsComponent({
         <IconButton onClick={backWard} style={{ color: "lightgray" }}>
           <ChevronLeft style={icons} />
         </IconButton>
-        <IconButton style={{ color: "lightgray" }}>
-          <PlayArrow style={icons} />
-        </IconButton>
         <IconButton onClick={forWard} style={{ color: "lightgray" }}>
           <ChevronRight style={icons} />
         </IconButton>
-        <IconButton style={{ color: "lightgray" }}>
+        <IconButton onClick={totalForward} style={{ color: "lightgray" }}>
           <LastPage style={icons} />
         </IconButton>
       </div>
