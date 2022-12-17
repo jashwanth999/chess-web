@@ -37,12 +37,14 @@ export default function Home() {
 
   const logout = () => {
     localStorage.removeItem("_id");
-    navigate("/")
+    navigate("/");
+    window.location.reload();
   };
 
-  const joinChessRoom = () => {
+  const joinChessRoom = (min) => {
     socket.emit("join_room", {
       username: user?.username,
+      min: min,
     });
 
     navigate(`/waiting`);
@@ -91,19 +93,44 @@ export default function Home() {
         <div
           style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}
         >
-          <Button onClick={joinChessRoom} style={timeComp}>
+          <Button
+            onClick={() => {
+              joinChessRoom(3);
+            }}
+            style={timeComp}
+          >
             3 min
           </Button>
-          <Button onClick={joinChessRoom} style={timeComp}>
+          <Button
+            onClick={() => {
+              joinChessRoom(5);
+            }}
+            style={timeComp}
+          >
             5 min
           </Button>
-          <Button onClick={joinChessRoom} style={timeComp}>
+          <Button
+            onClick={() => {
+              joinChessRoom(10);
+            }}
+            style={timeComp}
+          >
             10 min
           </Button>
-          <Button onClick={joinChessRoom} style={timeComp}>
+          <Button
+            onClick={() => {
+              joinChessRoom(15);
+            }}
+            style={timeComp}
+          >
             15 min
           </Button>
-          <Button onClick={joinChessRoom} style={timeComp}>
+          <Button
+            onClick={() => {
+              joinChessRoom(30);
+            }}
+            style={timeComp}
+          >
             30 min
           </Button>
         </div>
